@@ -8,27 +8,9 @@ namespace backend.Data
     {
         public DataContext(DbContextOptions<DataContext> options) : base(options) { }
 
-        public DbSet<Products> Products { get; set; }
-        public DbSet<Stores> Stores { get; set; }
-        public DbSet<StoreProduct> StoreProduct { get; set; }
-
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            base.OnModelCreating(modelBuilder);
-
-            modelBuilder.Entity<StoreProduct>()
-                .HasKey(sp => new { sp.StoreId, sp.ProductId });
-
-            modelBuilder.Entity<StoreProduct>()
-                .HasOne(sp => sp.Store)
-                .WithMany(s => s.StoreProducts)
-                .HasForeignKey(sp => sp.StoreId);
-
-            modelBuilder.Entity<StoreProduct>()
-                .HasOne(sp => sp.Product)
-                .WithMany(p => p.StoreProducts)
-                .HasForeignKey(sp => sp.ProductId);
-        }
+        public DbSet<Product> Products { get; set; }
+        public DbSet<Store> Stores { get; set; }
+        public DbSet<ProductDetail> ProductDetails { get; set; }
     }
 
 }
