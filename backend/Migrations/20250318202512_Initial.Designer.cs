@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using backend.Data;
 
@@ -11,9 +12,11 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20250318202512_Initial")]
+    partial class Initial
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -73,35 +76,6 @@ namespace backend.Migrations
                     b.ToTable("Categories");
                 });
 
-            modelBuilder.Entity("backend.Entities.Permission", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Permissions");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Name = "View"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Name = "Edit"
-                        });
-                });
-
             modelBuilder.Entity("backend.Entities.Product", b =>
                 {
                     b.Property<int>("Id")
@@ -159,117 +133,6 @@ namespace backend.Migrations
                     b.HasIndex("StoreId");
 
                     b.ToTable("ProductDetails");
-                });
-
-            modelBuilder.Entity("backend.Entities.Role", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Roles");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Name = "Admin"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Name = "ClientUser"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Name = "LoudLinkUser"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Name = "Client"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            Name = "User"
-                        });
-                });
-
-            modelBuilder.Entity("backend.Entities.RolePermission", b =>
-                {
-                    b.Property<int>("RoleId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PermissionId")
-                        .HasColumnType("int");
-
-                    b.HasKey("RoleId", "PermissionId");
-
-                    b.HasIndex("PermissionId");
-
-                    b.ToTable("RolePermissions");
-
-                    b.HasData(
-                        new
-                        {
-                            RoleId = 1,
-                            PermissionId = 1
-                        },
-                        new
-                        {
-                            RoleId = 1,
-                            PermissionId = 2
-                        },
-                        new
-                        {
-                            RoleId = 2,
-                            PermissionId = 1
-                        },
-                        new
-                        {
-                            RoleId = 2,
-                            PermissionId = 2
-                        },
-                        new
-                        {
-                            RoleId = 3,
-                            PermissionId = 1
-                        },
-                        new
-                        {
-                            RoleId = 3,
-                            PermissionId = 2
-                        },
-                        new
-                        {
-                            RoleId = 4,
-                            PermissionId = 1
-                        },
-                        new
-                        {
-                            RoleId = 4,
-                            PermissionId = 2
-                        },
-                        new
-                        {
-                            RoleId = 5,
-                            PermissionId = 1
-                        },
-                        new
-                        {
-                            RoleId = 5,
-                            PermissionId = 2
-                        });
                 });
 
             modelBuilder.Entity("backend.Entities.Store", b =>
@@ -389,43 +252,14 @@ namespace backend.Migrations
                     b.Navigation("Store");
                 });
 
-            modelBuilder.Entity("backend.Entities.RolePermission", b =>
-                {
-                    b.HasOne("backend.Entities.Permission", "Permission")
-                        .WithMany("RolePermissions")
-                        .HasForeignKey("PermissionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("backend.Entities.Role", "Role")
-                        .WithMany("RolePermissions")
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Permission");
-
-                    b.Navigation("Role");
-                });
-
             modelBuilder.Entity("backend.Entities.Category", b =>
                 {
                     b.Navigation("ProductDetails");
                 });
 
-            modelBuilder.Entity("backend.Entities.Permission", b =>
-                {
-                    b.Navigation("RolePermissions");
-                });
-
             modelBuilder.Entity("backend.Entities.Product", b =>
                 {
                     b.Navigation("ProductDetails");
-                });
-
-            modelBuilder.Entity("backend.Entities.Role", b =>
-                {
-                    b.Navigation("RolePermissions");
                 });
 
             modelBuilder.Entity("backend.Entities.Store", b =>

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using backend.Data;
 
@@ -11,9 +12,11 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20250318222047_Initial1")]
+    partial class Initial1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -186,21 +189,6 @@ namespace backend.Migrations
                         new
                         {
                             Id = 2,
-                            Name = "ClientUser"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Name = "LoudLinkUser"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Name = "Client"
-                        },
-                        new
-                        {
-                            Id = 5,
                             Name = "User"
                         });
                 });
@@ -213,6 +201,9 @@ namespace backend.Migrations
                     b.Property<int>("PermissionId")
                         .HasColumnType("int");
 
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
                     b.HasKey("RoleId", "PermissionId");
 
                     b.HasIndex("PermissionId");
@@ -223,52 +214,20 @@ namespace backend.Migrations
                         new
                         {
                             RoleId = 1,
-                            PermissionId = 1
+                            PermissionId = 1,
+                            Id = 0
                         },
                         new
                         {
                             RoleId = 1,
-                            PermissionId = 2
+                            PermissionId = 2,
+                            Id = 0
                         },
                         new
                         {
                             RoleId = 2,
-                            PermissionId = 1
-                        },
-                        new
-                        {
-                            RoleId = 2,
-                            PermissionId = 2
-                        },
-                        new
-                        {
-                            RoleId = 3,
-                            PermissionId = 1
-                        },
-                        new
-                        {
-                            RoleId = 3,
-                            PermissionId = 2
-                        },
-                        new
-                        {
-                            RoleId = 4,
-                            PermissionId = 1
-                        },
-                        new
-                        {
-                            RoleId = 4,
-                            PermissionId = 2
-                        },
-                        new
-                        {
-                            RoleId = 5,
-                            PermissionId = 1
-                        },
-                        new
-                        {
-                            RoleId = 5,
-                            PermissionId = 2
+                            PermissionId = 1,
+                            Id = 0
                         });
                 });
 
