@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace backend.Controllers
 {
+    [Authorize]
     [Route("api/")]
     [ApiController]
     public class StoresController : ControllerBase
@@ -25,7 +26,7 @@ namespace backend.Controllers
             var stores = await _storeService.GetAllStores();
             return Ok(stores);
         }
-        [Authorize]
+        
         [RolePermission("View")]
         [HttpGet]
         [Route("store{id}")]
@@ -37,16 +38,16 @@ namespace backend.Controllers
             return Ok(store);
         }
 
-        [Authorize]
-        [RolePermission("Edit")]
+        
         [HttpPost("add-store")]
         public async Task<ActionResult<Store>> AddStore(StoreModel store, Guid userId)
         {
+
             var addedStore = await _storeService.AddStore(store, userId);
             return Ok(addedStore);
         }
 
-        [Authorize]
+        
         [HttpPut("update-store{id}")]
         public async Task<ActionResult<Store>> UpdateStore(int id, StoreModel request)
         {
@@ -56,6 +57,16 @@ namespace backend.Controllers
 
             return Ok(result);
 
+        }
+
+        [HttpDelete("delete-store{id}")]
+        public async Task<ActionResult<Store>> DeleteStore(int id)
+        {
+            var store = await _storeService.GetStore(id, Guid.Empty);
+            if (store is null)
+                return NotFound("Sorryy");
+            
+            return Ok("Store Removed");
         }
     }
 }

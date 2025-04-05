@@ -10,10 +10,10 @@ public class EmailSender : IEmailSender<IdentityUser>
 
     public EmailSender()
     {
-        _smtpClient = new SmtpClient("smtp.gmail.com")
+        _smtpClient = new SmtpClient("smtp.hostinger.com")
         {
             Port = 465,
-            Credentials = new NetworkCredential("iaswnas.kop@gmail.com", "sbho owtw ppsd osoe"),
+            Credentials = new NetworkCredential("support@loudlink.gr", "LoudlinkK?!"),
             EnableSsl = true,
         };
     }
@@ -22,7 +22,7 @@ public class EmailSender : IEmailSender<IdentityUser>
     {
         var mailMessage = new MailMessage
         {
-            From = new MailAddress("iaswnas.kop@gmail.com"),
+            From = new MailAddress("support@loudlink.gr"),
             Subject = subject,
             Body = htmlMessage,
             IsBodyHtml = true,

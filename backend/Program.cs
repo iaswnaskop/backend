@@ -5,6 +5,8 @@ using backend.Data;
 using backend.Services;
 using backend.Services.StoreServices;
 using backend.Services.AuthServices;
+using backend.Services.ProductServices;
+using backend.Services.CategoryServices;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
@@ -58,6 +60,8 @@ builder.Services.AddDbContext<DataContext>(options =>
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IStoreService, StoreService>();
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
 
 
 var app = builder.Build();
@@ -73,7 +77,7 @@ if (app.Environment.IsDevelopment())
 
 
 app.UseHttpsRedirection();
-
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

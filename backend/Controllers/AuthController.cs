@@ -10,8 +10,9 @@ namespace backend.Controllers
     [ApiController]
     public class AuthController(IAuthService authService) : ControllerBase
     {
+        //[Authorize(Roles = "Admin")]
         [HttpPost("register")]
-        public async Task<ActionResult<User>> Register(UserModel request)
+        public async Task<ActionResult<User>> Register(UserRegisterModel request)
         {
             var user = await authService.RegisterAsync(request);
             if (user is null)
@@ -22,7 +23,7 @@ namespace backend.Controllers
 
 
         [HttpPost("login")]
-        public async Task<ActionResult<TokenResponseModel>> Login(UserModel request)
+        public async Task<ActionResult<TokenResponseModel>> Login(UserLoginModel request)
         {
             var result = await authService.LoginAsync(request);
             if (result is null)
@@ -46,6 +47,15 @@ namespace backend.Controllers
         public async Task<ActionResult<User>> UserDetails()
         {
             var user = await authService.GetUserAsync(User);
+            if (user is null)
+                return NotFound("User not found.");
+            return Ok(user);
+        }
+
+        [HttpGet("user/{id}")]
+        public async Task<ActionResult<User>> GetUser(Guid id)
+        {
+            var user = await authService.GetUserById(id);
             if (user is null)
                 return NotFound("User not found.");
             return Ok(user);

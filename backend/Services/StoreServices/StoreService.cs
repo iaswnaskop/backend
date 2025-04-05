@@ -35,6 +35,8 @@ namespace backend.Services.StoreServices
 
             
 
+
+
             _context.Stores.Add(newStore);
             await _context.SaveChangesAsync();
 
@@ -91,6 +93,17 @@ namespace backend.Services.StoreServices
             await _context.SaveChangesAsync();
 
             return store;
+        }
+        public async Task<bool> DeleteStore(int id, Guid userId)
+        {
+            var store = await _context.Stores
+                .Include(s => s.Users)
+                .FirstOrDefaultAsync(s => s.Id == id && s.Users.Any(u => u.Id == userId));
+            if (store is null)
+                return false;
+            _context.Stores.Remove(store);
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }

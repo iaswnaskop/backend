@@ -12,8 +12,8 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250318222836_Initial2")]
-    partial class Initial2
+    [Migration("20250329183651_AddStoreType")]
+    partial class AddStoreType
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -91,18 +91,6 @@ namespace backend.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Permissions");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Name = "View"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Name = "Edit"
-                        });
                 });
 
             modelBuilder.Entity("backend.Entities.Product", b =>
@@ -179,18 +167,6 @@ namespace backend.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Roles");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Name = "Admin"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Name = "User"
-                        });
                 });
 
             modelBuilder.Entity("backend.Entities.RolePermission", b =>
@@ -206,23 +182,6 @@ namespace backend.Migrations
                     b.HasIndex("PermissionId");
 
                     b.ToTable("RolePermissions");
-
-                    b.HasData(
-                        new
-                        {
-                            RoleId = 1,
-                            PermissionId = 1
-                        },
-                        new
-                        {
-                            RoleId = 1,
-                            PermissionId = 2
-                        },
-                        new
-                        {
-                            RoleId = 2,
-                            PermissionId = 1
-                        });
                 });
 
             modelBuilder.Entity("backend.Entities.Store", b =>
@@ -248,6 +207,38 @@ namespace backend.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Stores");
+                });
+
+            modelBuilder.Entity("backend.Entities.StoreType", b =>
+                {
+                    b.Property<int>("StoreId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TypeId")
+                        .HasColumnType("int");
+
+                    b.HasKey("StoreId", "TypeId");
+
+                    b.HasIndex("TypeId");
+
+                    b.ToTable("StoreTypes");
+                });
+
+            modelBuilder.Entity("backend.Entities.Type", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Types");
                 });
 
             modelBuilder.Entity("backend.Entities.User", b =>
@@ -361,6 +352,25 @@ namespace backend.Migrations
                     b.Navigation("Role");
                 });
 
+            modelBuilder.Entity("backend.Entities.StoreType", b =>
+                {
+                    b.HasOne("backend.Entities.Store", "Store")
+                        .WithMany("StoreTypes")
+                        .HasForeignKey("StoreId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("backend.Entities.Type", "Type")
+                        .WithMany("StoreTypes")
+                        .HasForeignKey("TypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Store");
+
+                    b.Navigation("Type");
+                });
+
             modelBuilder.Entity("backend.Entities.Category", b =>
                 {
                     b.Navigation("ProductDetails");
@@ -384,6 +394,13 @@ namespace backend.Migrations
             modelBuilder.Entity("backend.Entities.Store", b =>
                 {
                     b.Navigation("ProductDetails");
+
+                    b.Navigation("StoreTypes");
+                });
+
+            modelBuilder.Entity("backend.Entities.Type", b =>
+                {
+                    b.Navigation("StoreTypes");
                 });
 #pragma warning restore 612, 618
         }

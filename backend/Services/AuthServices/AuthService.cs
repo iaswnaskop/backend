@@ -11,7 +11,7 @@ namespace backend.Services.AuthServices
 {
     public class AuthService(DataContext context, IConfiguration configuration) : IAuthService
     {
-        public async Task<User?> RegisterAsync(UserModel request)
+        public async Task<User?> RegisterAsync(UserRegisterModel request)
         {
             if (await context.Users.AnyAsync(u => u.Username == request.Username))
             {
@@ -35,7 +35,7 @@ namespace backend.Services.AuthServices
             return user;
         }
 
-        public async Task<TokenResponseModel?> LoginAsync(UserModel request)
+        public async Task<TokenResponseModel?> LoginAsync(UserLoginModel request)
         {
             var user = await context.Users.FirstOrDefaultAsync(u => u.Username == request.Username);
             if (user is null)
@@ -130,6 +130,11 @@ namespace backend.Services.AuthServices
             if (userId is null)
                 return null;
             return await context.Users.FindAsync(Guid.Parse(userId));
+        }
+
+        public async Task<User?> GetUserById(Guid id)
+        {
+            return await context.Users.FindAsync(id);
         }
     }
 }

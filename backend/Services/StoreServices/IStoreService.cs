@@ -9,5 +9,6 @@
         Task<Store> AddStore(StoreModel store, Guid userId);
 
         Task<Store> UpdateStore(int id, StoreModel request);
+        Task<bool> DeleteStore(int id, Guid userId);
     }
 }

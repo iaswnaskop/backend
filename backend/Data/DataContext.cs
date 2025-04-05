@@ -15,6 +15,8 @@ namespace backend.Data
         public DbSet<Role> Roles { get; set; }
         public DbSet<Permission> Permissions { get; set; }
         public DbSet<RolePermission> RolePermissions { get; set; }
+        public DbSet<Entities.Type> Types { get; set; }
+        public DbSet<StoreType> StoreTypes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -30,6 +32,38 @@ namespace backend.Data
                 .HasOne(rp => rp.Permission)
                 .WithMany(p => p.RolePermissions)
                 .HasForeignKey(rp => rp.PermissionId);
+
+            //////
+            ///
+            modelBuilder.Entity<StoreType>()
+                .HasKey(st => new { st.StoreId, st.TypeId });
+
+            modelBuilder.Entity<StoreType>()
+                .HasOne(st => st.Store)
+                .WithMany(s => s.StoreTypes)
+                .HasForeignKey(st => st.StoreId);
+
+            modelBuilder.Entity<StoreType>()
+                .HasOne(st => st.Type)
+                .WithMany(t => t.StoreTypes)
+                .HasForeignKey(t => t.TypeId);
+
+
+            //modelBuilder.Entity<Role>().HasData(
+            //    new Role { Id = 1, Name = "Admin" },
+            //    new Role { Id = 2, Name = "User" }
+            //);
+
+            //modelBuilder.Entity<Permission>().HasData(
+            //    new Permission { Id = 1, Name = "View" },
+            //    new Permission { Id = 2, Name = "Edit" }
+            //);
+
+            //modelBuilder.Entity<RolePermission>().HasData(
+            //    new RolePermission { RoleId = 1, PermissionId = 1 }, // Admin - View
+            //    new RolePermission { RoleId = 1, PermissionId = 2 }, // Admin - Edit
+            //    new RolePermission { RoleId = 2, PermissionId = 1 }  // User - View
+            //);
         }
 
     }
