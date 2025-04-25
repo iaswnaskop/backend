@@ -38,6 +38,7 @@ namespace backend.Services.AuthServices
         public async Task<TokenResponseModel?> LoginAsync(UserLoginModel request)
         {
             var user = await context.Users.FirstOrDefaultAsync(u => u.Username == request.Username);
+            
             if (user is null)
             {
                 return null;
@@ -56,7 +57,8 @@ namespace backend.Services.AuthServices
             return new TokenResponseModel
             {
                 AccessToken = CreateToken(user),
-                RefreshToken = await GenerateAndSaveRefreshTokenAsync(user)
+                RefreshToken = await GenerateAndSaveRefreshTokenAsync(user),
+                HasPassOnBoarding = user.HasPassOnBoarding
             };
         }
 

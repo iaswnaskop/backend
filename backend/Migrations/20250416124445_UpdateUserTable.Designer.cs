@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using backend.Data;
 
@@ -11,9 +12,11 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20250416124445_UpdateUserTable")]
+    partial class UpdateUserTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -98,27 +101,6 @@ namespace backend.Migrations
                     b.HasIndex("StoreId");
 
                     b.ToTable("Design");
-                });
-
-            modelBuilder.Entity("backend.Entities.Language", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Abbr")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CountryLang")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Languages");
                 });
 
             modelBuilder.Entity("backend.Entities.Permission", b =>
@@ -267,11 +249,11 @@ namespace backend.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("AFM")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("AFM")
+                        .HasColumnType("int");
 
                     b.Property<string>("Address")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Description")
@@ -309,21 +291,6 @@ namespace backend.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Stores");
-                });
-
-            modelBuilder.Entity("backend.Entities.StoreLanguage", b =>
-                {
-                    b.Property<int>("StoreId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("LanguageId")
-                        .HasColumnType("int");
-
-                    b.HasKey("StoreId", "LanguageId");
-
-                    b.HasIndex("LanguageId");
-
-                    b.ToTable("StoreLanguages");
                 });
 
             modelBuilder.Entity("backend.Entities.StoreType", b =>
@@ -495,25 +462,6 @@ namespace backend.Migrations
                     b.Navigation("Role");
                 });
 
-            modelBuilder.Entity("backend.Entities.StoreLanguage", b =>
-                {
-                    b.HasOne("backend.Entities.Language", "Language")
-                        .WithMany("StoreLanguages")
-                        .HasForeignKey("LanguageId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("backend.Entities.Store", "Store")
-                        .WithMany("StoreLanguages")
-                        .HasForeignKey("StoreId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Language");
-
-                    b.Navigation("Store");
-                });
-
             modelBuilder.Entity("backend.Entities.StoreType", b =>
                 {
                     b.HasOne("backend.Entities.Store", "Store")
@@ -538,11 +486,6 @@ namespace backend.Migrations
                     b.Navigation("ProductDetails");
                 });
 
-            modelBuilder.Entity("backend.Entities.Language", b =>
-                {
-                    b.Navigation("StoreLanguages");
-                });
-
             modelBuilder.Entity("backend.Entities.Permission", b =>
                 {
                     b.Navigation("RolePermissions");
@@ -563,8 +506,6 @@ namespace backend.Migrations
                     b.Navigation("Design");
 
                     b.Navigation("ProductDetails");
-
-                    b.Navigation("StoreLanguages");
 
                     b.Navigation("StoreTypes");
                 });

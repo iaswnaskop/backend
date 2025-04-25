@@ -88,10 +88,27 @@ namespace backend.Services.ProductServices
             var existingProductDetail = await _context.ProductDetails.FindAsync(id);
             if (existingProductDetail == null)
                 return null;
-            existingProductDetail.Description = productDetail.Description;
-            existingProductDetail.Price = productDetail.Price;
-            existingProductDetail.Name = productDetail.Name;
-            existingProductDetail.Available = productDetail.Available;
+
+            if (!string.Equals(existingProductDetail.Name, productDetail.Name, StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(productDetail.Name))
+            {
+                existingProductDetail.Name = productDetail.Name;
+            }
+
+            if (existingProductDetail.Price != productDetail.Price)
+            {
+                existingProductDetail.Price = productDetail.Price;
+            }
+
+            if (!string.Equals(existingProductDetail.Description, productDetail.Description, StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(productDetail.Description))
+            {
+                existingProductDetail.Description = productDetail.Description;
+            }
+
+            if (existingProductDetail.Available != productDetail.Available)
+            {
+                existingProductDetail.Available = productDetail.Available;
+            }
+
             // Update other properties as needed
             await _context.SaveChangesAsync();
             return existingProductDetail;

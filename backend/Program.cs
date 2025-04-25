@@ -38,7 +38,15 @@ builder.Services.AddSwaggerGen(options =>
 
     options.OperationFilter<SecurityRequirementsOperationFilter>();
 });
-
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowLocalhost5173", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -75,7 +83,7 @@ if (app.Environment.IsDevelopment())
 }
 
 
-
+app.UseCors("AllowLocalhost5173");
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel;
 
 namespace backend.Data
 {
@@ -17,6 +18,9 @@ namespace backend.Data
         public DbSet<RolePermission> RolePermissions { get; set; }
         public DbSet<Entities.Type> Types { get; set; }
         public DbSet<StoreType> StoreTypes { get; set; }
+        public DbSet<Design> Design { get; set; }
+        public DbSet<Language> Languages { get; set; }
+        public DbSet<StoreLanguage> StoreLanguages { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -47,6 +51,20 @@ namespace backend.Data
                 .HasOne(st => st.Type)
                 .WithMany(t => t.StoreTypes)
                 .HasForeignKey(t => t.TypeId);
+
+            
+            modelBuilder.Entity<StoreLanguage>()
+                .HasKey(sl => new { sl.StoreId, sl.LanguageId });
+
+            modelBuilder.Entity<StoreLanguage>()
+                .HasOne(sl => sl.Store)
+                .WithMany(s => s.StoreLanguages)
+                .HasForeignKey(sl => sl.StoreId);
+
+            modelBuilder.Entity<StoreLanguage>()
+                .HasOne(sl => sl.Language)
+                .WithMany(l => l.StoreLanguages)
+                .HasForeignKey(l => l.LanguageId);
 
 
             //modelBuilder.Entity<Role>().HasData(

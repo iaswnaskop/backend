@@ -40,7 +40,7 @@ namespace backend.Controllers
 
         
         [HttpPost("add-store")]
-        public async Task<ActionResult<Store>> AddStore(StoreModel store, Guid userId)
+        public async Task<ActionResult<Store>> AddStore(AddStoreModel store,Guid userId)
         {
 
             var addedStore = await _storeService.AddStore(store, userId);

@@ -1,5 +1,6 @@
 ﻿
 using backend.Data;
+using backend.Entities;
 using backend.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
@@ -18,30 +19,55 @@ namespace backend.Services.StoreServices
         {
             _context = context;
         }
-        public async Task<Store> AddStore(StoreModel store, Guid userId)
+        public async Task<Store> AddStore(AddStoreModel store, Guid userId)
         {
-
             var user = await _context.Users.FindAsync(userId);
+            var storeTypes = await _context.Types
+                .Where(t => store.TypeId.Any(st => st.Equals(t.Id)))
+                .ToListAsync();
+
+            var storeLanguages = await _context.Languages
+                .Where(t => store.LanguageId.Any(st => st.Equals(t.Id)))
+                .ToListAsync();
+
             if (user is null)
                 return null;
+
             var newStore = new Store
             {
                 Name = store.Name,
                 Address = store.Address,
                 Description = store.Description,
                 Phone = store.Phone,
-                Users = new List<User> { user }
+                Users = new List<User> { user },
+                AFM = store.AFM,
+                ImageURL = store.ImageURL,
+                Email = store.Email,
+                Facebook = store.Facebook,
+                Instagram = store.Instagram,
+                TikTok = store.TikTok,
+                TripAdvisor = store.TripAdvisor,
+                GoogleBusiness = store.GoogleBusiness
+                
             };
-
-            
-
-
 
             _context.Stores.Add(newStore);
             await _context.SaveChangesAsync();
+            // Εδώ προσθέτουμε τους StoreTypes
+            newStore.StoreTypes =  storeTypes.Select(type => new StoreType
+            {
+                StoreId = newStore.Id,
+                TypeId = type.Id
+            }).ToList();
 
+            newStore.StoreLanguages = storeLanguages.Select(language => new StoreLanguage
+            {
+                StoreId = newStore.Id,
+                LanguageId = language.Id
+            }).ToList();
+
+            await _context.SaveChangesAsync();
             return newStore;
-
         }
 
         public async Task<List<Store>> GetAllStores()
@@ -66,7 +92,10 @@ namespace backend.Services.StoreServices
 
         public async Task<Store> UpdateStore(int id, StoreModel request)
         {
-            var store = await _context.Stores.FindAsync(id);
+            var store = await _context.Stores
+                .Include(s => s.StoreTypes)
+                .FirstOrDefaultAsync(s => s.Id == id);
+
             if (store is null)
                 return null;
 
@@ -89,6 +118,58 @@ namespace backend.Services.StoreServices
             {
                 store.Phone = request.Phone;
             }
+            if (request.AFM != null && request.AFM != store.AFM)
+            {
+                store.AFM = request.AFM;
+            }
+            if (request.ImageURL != null && request.ImageURL != store.ImageURL)
+            {
+                store.ImageURL = request.ImageURL;
+            }
+            if(request.Email != null && request.Email != store.Email)
+            {
+                store.Email = request.Email;
+            }
+            if (request.Facebook != null && request.Facebook != store.Facebook)
+            {
+                store.Facebook = request.Facebook;
+            }
+            if (request.Instagram != null && request.Instagram != store.Instagram)
+            {
+                store.Instagram = request.Instagram;
+            }
+            if (request.TikTok != null && request.TikTok != store.TikTok)
+            {
+                store.TikTok = request.TikTok;
+            }
+            if (request.TripAdvisor != null && request.TripAdvisor != store.TripAdvisor)
+            {
+                store.TripAdvisor = request.TripAdvisor;
+            }
+            if (request.GoogleBusiness != null && request.GoogleBusiness != store.GoogleBusiness)
+            {
+                store.GoogleBusiness = request.GoogleBusiness;
+            }
+
+
+            // Ενημέρωση των StoreTypes
+            if (request.TypeModel != null)
+            {
+                // Διαγραφή των παλιών StoreTypes
+                _context.StoreTypes.RemoveRange(store.StoreTypes);
+
+                // Προσθήκη των νέων StoreTypes
+                var storeTypes = await _context.Types
+                    .Where(t => request.TypeModel.Any(st => st.Id == t.Id))
+                    .ToListAsync();
+
+                store.StoreTypes = storeTypes.Select(type => new StoreType
+                {
+                    StoreId = store.Id,
+                    TypeId = type.Id
+                }).ToList();
+            }
+            
 
             await _context.SaveChangesAsync();
 
