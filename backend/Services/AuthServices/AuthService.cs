@@ -126,17 +126,43 @@ namespace backend.Services.AuthServices
             return new JwtSecurityTokenHandler().WriteToken(tokenDescriptor);
         }
 
-        public async Task<User?> GetUserAsync(ClaimsPrincipal user)
+        public async Task<UserDetailsModel?> GetUserAsync(ClaimsPrincipal user)
         {
             var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId is null)
                 return null;
-            return await context.Users.FindAsync(Guid.Parse(userId));
+            var userDetails = await context.Users
+                .Where(u => u.Id.ToString() == userId)
+                .Select(u => new UserDetailsModel
+                {
+                    Id = u.Id,
+                    Username = u.Username,
+                    Email = u.Email,
+                    FullName = u.FullName
+                })
+                .FirstOrDefaultAsync();
+            
+            return userDetails;
+        }
+        public async Task<UserDetailsModel?> UpdateUserDetailsAsync(UserDetailsModel request)
+        {
+            var user = await context.Users.FindAsync(request.Id);
+            if (user is null)
+                return null;
+            user.Username = request.Username;
+            user.Email = request.Email;
+            user.FullName = request.FullName;
+            user.Phone = request.Phone;
+            await context.SaveChangesAsync();
+            return new UserDetailsModel
+            {
+                Id = user.Id,
+                Username = user.Username,
+                Email = user.Email,
+                FullName = user.FullName,
+                Phone = user.Phone
+            };
         }
 
-        public async Task<User?> GetUserById(Guid id)
-        {
-            return await context.Users.FindAsync(id);
-        }
     }
 }

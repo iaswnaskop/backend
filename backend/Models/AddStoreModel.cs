@@ -2,7 +2,7 @@
 {
     public class AddStoreModel
     {
-        public string? Name { get; set; }
+        public string Name { get; set; }
 
         public string? Description { get; set; }
 
@@ -19,5 +19,11 @@
         public string? GoogleBusiness { get; set; }
         public List<int> TypeId { get; set; }
         public List<int> LanguageId { get; set; }
+        public int DesignModelId { get; set; }
+        public string? DesignColor { get; set; }
+        public string DesignFont { get; set; }
+        public string? DesignBackgroundURL { get; set; }
+        public IFormFile Logo { get; set; }
+        public IFormFile BgPhoto { get; set; }
     }
 }

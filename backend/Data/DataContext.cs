@@ -21,6 +21,7 @@ namespace backend.Data
         public DbSet<Design> Design { get; set; }
         public DbSet<Language> Languages { get; set; }
         public DbSet<StoreLanguage> StoreLanguages { get; set; }
+        public DbSet<DesignModel> DesignModel { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

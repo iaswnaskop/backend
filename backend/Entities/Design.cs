@@ -6,8 +6,8 @@
         public string? BgColor { get; set; }
         public string? BgURL { get; set; }
         public string? Font { get; set; }
-        public int StoreId { get; set; }
-        public virtual Store Store { get; set; } = null!;
-        
+        public int DesignModelId { get; set; }
+        public virtual DesignModel DesignModel { get; set; } = null!;
+
     }
 }

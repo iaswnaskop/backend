@@ -1,4 +1,5 @@
 ﻿using backend.Services.StoreServices;
+using backend.Services.CloudinaryServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -12,11 +13,14 @@ namespace backend.Controllers
     public class StoresController : ControllerBase
     {
         private readonly IStoreService _storeService;
-
-        public StoresController(IStoreService storeService)
+        private readonly ICloudinaryService _cloudinaryService;
+        public StoresController(IStoreService storeService, ICloudinaryService cloudinaryService)
         {
             _storeService = storeService;
+            _cloudinaryService = cloudinaryService;
         }
+
+      
 
         [Authorize(Roles = "Admin")]
         [HttpGet("all-stores")]
@@ -40,8 +44,35 @@ namespace backend.Controllers
 
         
         [HttpPost("add-store")]
-        public async Task<ActionResult<Store>> AddStore(AddStoreModel store,Guid userId)
+        [Consumes("multipart/form-data")]
+        public async Task<ActionResult<Store>> AddStore([FromForm] AddStoreModel store, [FromForm] Guid userId)
         {
+            var urls = new List<string>();
+            if (store.Logo is null || (store.DesignBackgroundURL is null && store.DesignColor is null))
+                return BadRequest("Please upload images or Backround color");
+
+            
+
+            if (store.DesignColor is null)
+            {
+                 var files = new List<IFormFile> { store.Logo, store.BgPhoto };
+                 urls = await _cloudinaryService.UploadPhotosAsync(files, store.AFM);
+            }
+            else
+            {
+                var files = new List<IFormFile> { store.Logo };
+                urls = await _cloudinaryService.UploadPhotosAsync(files, store.AFM);
+            }
+
+            store.ImageURL = urls.ElementAtOrDefault(0);
+            if (store.DesignBackgroundURL is not null)
+            {
+                store.DesignBackgroundURL = urls.ElementAtOrDefault(1);
+
+            }
+
+            //if (store.ImageURL is null || (store.DesignBackgroundURL is null && store.DesignColor is null))
+            //    return BadRequest("Error uploading images or Backround color");
 
             var addedStore = await _storeService.AddStore(store, userId);
             return Ok(addedStore);
@@ -67,6 +98,26 @@ namespace backend.Controllers
                 return NotFound("Sorryy");
             
             return Ok("Store Removed");
+        }
+
+        [HttpGet("store-types")]
+        public async Task<ActionResult<List<TypeModel>>> GetStoreTypes()
+        {
+            var storeTypes = await _storeService.GetStoreTypes();
+            return Ok(storeTypes);
+        }
+        [HttpGet("store-languages")]
+        public async Task<ActionResult<List<LanguageModel>>> GetStoreLanguages()
+        {
+            var storeLanguages = await _storeService.GetStoreLanguages();
+            return Ok(storeLanguages);
+        }
+
+        [HttpGet("store-design-models")]
+        public async Task<ActionResult<List<DesignModel>>> GetStoreDesignModels()
+        {
+            var storeDesignModels = await _storeService.GetStoreDesignModels();
+            return Ok(storeDesignModels);
         }
     }
 }

@@ -7,6 +7,7 @@ using backend.Services.StoreServices;
 using backend.Services.AuthServices;
 using backend.Services.ProductServices;
 using backend.Services.CategoryServices;
+using backend.Services.CloudinaryServices;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
@@ -15,7 +16,8 @@ using Swashbuckle.AspNetCore.Filters;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using System.Text.Json.Serialization; // Add this using directive
+using System.Text.Json.Serialization;
+using backend.Filters; // Add this using directive
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,6 +39,19 @@ builder.Services.AddSwaggerGen(options =>
     });
 
     options.OperationFilter<SecurityRequirementsOperationFilter>();
+    options.MapType<IFormFile>(() =>
+     new OpenApiSchema { Type = "string", Format = "binary" }
+ );
+    options.MapType<List<IFormFile>>(() =>
+        new OpenApiSchema
+        {
+            Type = "array",
+            Items = new OpenApiSchema { Type = "string", Format = "binary" }
+        }
+    );
+
+    // —— Ενεργοποίηση του OperationFilter για multipart/form-data ——
+    options.OperationFilter<FileUploadOperationFilter>();
 });
 builder.Services.AddCors(options =>
 {
@@ -47,6 +62,9 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod();
     });
 });
+builder.Services.Configure<CloudinarySettings>(
+    builder.Configuration.GetSection("CloudinarySettings"));
+builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {

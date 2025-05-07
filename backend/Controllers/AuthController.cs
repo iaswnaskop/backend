@@ -44,7 +44,7 @@ namespace backend.Controllers
 
         [Authorize]
         [HttpGet("user-details")]
-        public async Task<ActionResult<User>> UserDetails()
+        public async Task<ActionResult<UserDetailsModel>> UserDetails()
         {
             var user = await authService.GetUserAsync(User);
             if (user is null)
@@ -52,15 +52,16 @@ namespace backend.Controllers
             return Ok(user);
         }
 
-        [HttpGet("user/{id}")]
-        public async Task<ActionResult<User>> GetUser(Guid id)
+
+        [Authorize]
+        [HttpPost("update-user-details")]
+        public async Task<ActionResult<UserDetailsModel>> UpdateUserDetails(UserDetailsModel request)
         {
-            var user = await authService.GetUserById(id);
+            var user = await authService.UpdateUserDetailsAsync(request);
             if (user is null)
                 return NotFound("User not found.");
             return Ok(user);
         }
 
-        
     }
 }

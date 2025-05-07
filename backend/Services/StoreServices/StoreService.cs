@@ -47,8 +47,16 @@ namespace backend.Services.StoreServices
                 Instagram = store.Instagram,
                 TikTok = store.TikTok,
                 TripAdvisor = store.TripAdvisor,
-                GoogleBusiness = store.GoogleBusiness
+                GoogleBusiness = store.GoogleBusiness,
+                Design = new Design
+                {
+                    BgColor = store.DesignColor,
+                    Font = store.DesignFont,
+                    BgURL = store.DesignBackgroundURL,
+                    DesignModelId = store.DesignModelId
+                }
                 
+
             };
 
             _context.Stores.Add(newStore);
@@ -66,6 +74,20 @@ namespace backend.Services.StoreServices
                 LanguageId = language.Id
             }).ToList();
 
+            //var newDesign = new Design
+            //{
+            //    BgColor = store.DesignColor,
+            //    Font = store.DesignFont,
+            //    BgURL = store.DesignBackgroundURL,
+            //    DesignModelId = store.DesignModelId
+            //};
+            //_context.Design.Add(newDesign);
+
+            //await _context.SaveChangesAsync();
+            //newStore.DesignId = newDesign.Id;
+            _context.Stores.Update(newStore);
+            user.HasPassOnBoarding = true;
+            _context.Users.Update(user);
             await _context.SaveChangesAsync();
             return newStore;
         }
@@ -185,6 +207,40 @@ namespace backend.Services.StoreServices
             _context.Stores.Remove(store);
             await _context.SaveChangesAsync();
             return true;
+        }
+        public async Task<List<TypeModel>> GetStoreTypes()
+        {
+            var storeTypes = await _context.Types.ToListAsync();
+            var typeModels = storeTypes.Select(type => new TypeModel
+            {
+                Id = type.Id,
+                Name = type.Name
+            }).ToList();
+
+            return typeModels;
+        }
+        public async Task<List<LanguageModel>> GetStoreLanguages()
+        {
+            var storeLanguages = await _context.Languages.ToListAsync();
+            var languageModels = storeLanguages.Select(language => new LanguageModel
+            {
+                Id = language.Id,
+                CountryLang = language.CountryLang,
+                Abbr = language.Abbr
+            }).ToList();
+
+            return languageModels;
+        }
+
+        public async Task<List<DesignModel>> GetStoreDesignModels()
+        {
+            var storeDesignModels = await _context.DesignModel.ToListAsync();
+            var designModels = storeDesignModels.Select(design => new DesignModel
+            {
+                Id = design.Id,
+                Model = design.Model
+            }).ToList();
+            return designModels;
         }
     }
 }

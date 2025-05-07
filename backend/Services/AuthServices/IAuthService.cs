@@ -7,7 +7,8 @@ namespace backend.Services.AuthServices
         Task<User?> RegisterAsync(UserRegisterModel request);
         Task<TokenResponseModel?> LoginAsync(UserLoginModel request);
         Task<TokenResponseModel?> RefreshTokensAsync(RefreshTokenRequestModel request);
-        Task<User?> GetUserAsync(ClaimsPrincipal user);
-        Task<User?> GetUserById(Guid id);
+        Task<UserDetailsModel?> GetUserAsync(ClaimsPrincipal user);
+        Task<UserDetailsModel?> UpdateUserDetailsAsync(UserDetailsModel request);
+
     }
 }

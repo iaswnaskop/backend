@@ -10,5 +10,8 @@
 
         Task<Store> UpdateStore(int id, StoreModel request);
         Task<bool> DeleteStore(int id, Guid userId);
+        Task<List<TypeModel>> GetStoreTypes();
+        Task<List<LanguageModel>> GetStoreLanguages();
+        Task <List<DesignModel>> GetStoreDesignModels();
     }
 }
