@@ -12,8 +12,8 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250430201753_UpdateDB")]
-    partial class UpdateDB
+    [Migration("20250507110726_UpdateStagging")]
+    partial class UpdateStagging
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

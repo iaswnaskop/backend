@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using backend.Services.AuthServices;
 
 namespace backend.Controllers
 {
@@ -14,15 +15,17 @@ namespace backend.Controllers
     {
         private readonly IStoreService _storeService;
         private readonly ICloudinaryService _cloudinaryService;
-        public StoresController(IStoreService storeService, ICloudinaryService cloudinaryService)
+        private readonly IAuthService _authService;
+        public StoresController(IStoreService storeService, ICloudinaryService cloudinaryService, IAuthService authService)
         {
             _storeService = storeService;
             _cloudinaryService = cloudinaryService;
+            _authService = authService;
         }
 
-      
 
-        [Authorize(Roles = "Admin")]
+
+       
         [HttpGet("all-stores")]
         public async Task<ActionResult<List<Store>>> GetAllStores()
         {
@@ -31,10 +34,9 @@ namespace backend.Controllers
             return Ok(stores);
         }
         
-        [RolePermission("View")]
-        [HttpGet]
-        [Route("store{id}")]
-        public async Task<ActionResult<Store>> GetStore(int id, Guid userId)
+        [HttpGet("store/{id}")]
+        
+        public async Task<ActionResult<Store>> GetStore(int id, [FromHeader]Guid userId)
         {
             var store = await _storeService.GetStore(id, userId);
             if (store is null)
@@ -45,15 +47,17 @@ namespace backend.Controllers
         
         [HttpPost("add-store")]
         [Consumes("multipart/form-data")]
-        public async Task<ActionResult<Store>> AddStore([FromForm] AddStoreModel store, [FromForm] Guid userId)
+        public async Task<ActionResult<Store>> AddStore([FromForm] AddStoreModel store)
         {
+            if (store is null)
+                return BadRequest("Invalid store data or user ID");
             var urls = new List<string>();
             if (store.Logo is null || (store.DesignBackgroundURL is null && store.DesignColor is null))
                 return BadRequest("Please upload images or Backround color");
 
             
 
-            if (store.DesignColor is null)
+            if (store.DesignColor is not null)
             {
                  var files = new List<IFormFile> { store.Logo, store.BgPhoto };
                  urls = await _cloudinaryService.UploadPhotosAsync(files, store.AFM);
@@ -65,7 +69,7 @@ namespace backend.Controllers
             }
 
             store.ImageURL = urls.ElementAtOrDefault(0);
-            if (store.DesignBackgroundURL is not null)
+            if (store.DesignColor is not null)
             {
                 store.DesignBackgroundURL = urls.ElementAtOrDefault(1);
 
@@ -73,8 +77,11 @@ namespace backend.Controllers
 
             //if (store.ImageURL is null || (store.DesignBackgroundURL is null && store.DesignColor is null))
             //    return BadRequest("Error uploading images or Backround color");
+            var user = await _authService.GetUserAsync(User);
+            if (user is null)
+                return NotFound("User not found.");
 
-            var addedStore = await _storeService.AddStore(store, userId);
+            var addedStore = await _storeService.AddStore(store, user.Id);
             return Ok(addedStore);
         }
 
@@ -89,6 +96,16 @@ namespace backend.Controllers
             return Ok(result);
 
         }
+        //[HttpPut("update-store-photos")]
+        //public async Task<ActionResult<Store>> UpdateStorePhotos([FromForm] UpdateStorePhotos store, [FromForm] Guid userId)
+        //{
+        //    var
+        //    var result = await _storeService.UpdateStorePhotos(store, userId);
+        //    if (result is null)
+        //        return NotFound("Sorryy");
+
+        //    return Ok(result);
+        //}
 
         [HttpDelete("delete-store{id}")]
         public async Task<ActionResult<Store>> DeleteStore(int id)

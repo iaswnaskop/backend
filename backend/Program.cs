@@ -8,6 +8,7 @@ using backend.Services.AuthServices;
 using backend.Services.ProductServices;
 using backend.Services.CategoryServices;
 using backend.Services.CloudinaryServices;
+using backend.Services.QrCodeServices;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
@@ -25,7 +26,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
-    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
 }); 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -55,12 +56,23 @@ builder.Services.AddSwaggerGen(options =>
 });
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowLocalhost5173", policy =>
+    //options.AddDefaultPolicy(policy =>
+    //{
+    //    policy
+    //        .WithOrigins("http://localhost:5173", "https://yourfrontend.azurestaticapps.net")
+    //        .AllowAnyHeader()
+    //        .AllowAnyMethod();
+    //});
+    options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173")
-              .AllowAnyHeader()
-              .AllowAnyMethod();
+        policy
+            .WithOrigins("https://proud-field-0d0b23f03-preview.westeurope.6.azurestaticapps.net",
+            "http://localhost:5173"
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod();
     });
+
 });
 builder.Services.Configure<CloudinarySettings>(
     builder.Configuration.GetSection("CloudinarySettings"));
@@ -88,6 +100,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IStoreService, StoreService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IQrCodeService, QrCodeService>();
 
 
 var app = builder.Build();
@@ -101,7 +114,7 @@ if (app.Environment.IsDevelopment())
 }
 
 
-app.UseCors("AllowLocalhost5173");
+app.UseCors("AllowFrontend");
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();

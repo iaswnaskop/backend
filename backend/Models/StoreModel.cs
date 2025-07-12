@@ -15,7 +15,7 @@ public partial class StoreModel
 
     public string? Phone { get; set; }
     public string AFM { get; set; }
-    public string ImageURL { get; set; }
+    public string? ImageURL { get; set; }
     public string? Email { get; set; }
     public string? Facebook { get; set; }
     public string? Instagram { get; set; }

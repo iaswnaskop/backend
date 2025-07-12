@@ -40,7 +40,7 @@ namespace backend.Controllers
         }
 
         [HttpPost("add-product-details")]
-        public async Task<ActionResult<ProductDetail>> AddProductDetails(ProductDetailModel productDetail, int productId, int storeId, int categoryId)
+        public async Task<ActionResult<ProductDetail>> AddProductDetails(ProductDetailModel productDetail, [FromHeader]int productId, [FromHeader] int storeId, [FromHeader] int categoryId)
         {
             var addedProductDetails = await _productService.AddProductDetails(productDetail, productId, storeId, categoryId);
 

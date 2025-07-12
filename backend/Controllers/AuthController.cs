@@ -63,5 +63,11 @@ namespace backend.Controllers
             return Ok(user);
         }
 
+        [HttpGet("test")]
+        public ActionResult<string> Test()
+        {
+            return Ok("Test endpoint is working!");
+        }
+
     }
 }

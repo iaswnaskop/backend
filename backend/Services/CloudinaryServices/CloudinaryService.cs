@@ -1,6 +1,8 @@
 ﻿using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
 using Microsoft.Extensions.Options;
+using static QRCoder.PayloadGenerator;
+using System.Drawing;
 
 namespace backend.Services.CloudinaryServices
 {
@@ -17,10 +19,30 @@ namespace backend.Services.CloudinaryServices
                 settings.ApiSecret
             ));
         }
-        public Task<string> UploadPhotoAsync(IFormFile file, string afm)
+
+        public async Task<string> UploadPhotoAsync(IFormFile file, string afm)
         {
-            throw new NotImplementedException();
+            var url = string.Empty;
+            await using var stream = file.OpenReadStream();
+            var uploadParams = new ImageUploadParams
+            {
+                File = new FileDescription(file.FileName, stream),
+                Folder = afm,
+                Transformation = new Transformation()
+                    .FetchFormat("auto")
+                    .Chain()
+            };
+
+            var result = await _cloudinary.UploadAsync(uploadParams);
+
+            if (result.Error != null)
+                throw new ApplicationException($"Cloudinary upload error: {result.Error.Message}");
+
+            url = result.SecureUrl.AbsoluteUri;
+
+            return url;
         }
+
         public async Task<List<string>> UploadPhotosAsync(List<IFormFile> files, string afm)
         {
             var urls = new List<string>();
@@ -28,16 +50,19 @@ namespace backend.Services.CloudinaryServices
             foreach (var file in files)
             {
                 if (file == null || file.Length == 0)
-                    continue;  // ή throw, ανάλογα τι θέλεις
+                    continue;
 
                 await using var stream = file.OpenReadStream();
                 var uploadParams = new ImageUploadParams
                 {
-                    File = new FileDescription(file.FileName, stream),
+                    File = new FileDescription(file.Name, stream),
                     Folder = afm,
                     Transformation = new Transformation()
-                        .FetchFormat("auto")
-                        .Chain()
+                        .FetchFormat("avif")
+                        .Quality("auto") 
+                        .Chain(),
+                    DisplayName = file.Name,
+                    PublicId = file.Name
                 };
 
                 var result = await _cloudinary.UploadAsync(uploadParams);
@@ -49,15 +74,29 @@ namespace backend.Services.CloudinaryServices
             }
 
             return urls;
-        
         }
-        public Task<bool> DeletePhotoAsync(string publicId)
+
+        public async Task<string> UploadPhotoAsync(Bitmap qrCodeImage, string? afm)
         {
-            throw new NotImplementedException();
-        }
-        public Task<bool> DeletePhotosAsync(List<string> publicIds)
-        {
-            throw new NotImplementedException();
+            using var stream = new MemoryStream();
+            qrCodeImage.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
+            stream.Position = 0;
+
+            var uploadParams = new ImageUploadParams
+            {
+                File = new FileDescription(afm, stream),
+                Folder = afm,
+                Transformation = new Transformation()
+                    .FetchFormat("auto")
+                    .Chain()
+            };
+
+            var result = await _cloudinary.UploadAsync(uploadParams);
+
+            if (result.Error != null)
+                throw new ApplicationException($"Cloudinary upload error: {result.Error.Message}");
+
+            return result.SecureUrl.AbsoluteUri;
         }
     }
    

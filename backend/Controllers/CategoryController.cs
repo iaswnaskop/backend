@@ -34,7 +34,7 @@ namespace backend.Controllers
         }
 
         [HttpPost("add-category")]
-        public async Task<ActionResult<Category>> AddCategory(CategoryModel category, int storeId)
+        public async Task<ActionResult<Category>> AddCategory(CategoryModel category, [FromHeader] int storeId)
         {
             var addedCategory = await _categoryService.AddCategory(category, storeId);
             return Ok(addedCategory);

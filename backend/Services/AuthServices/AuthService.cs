@@ -132,13 +132,15 @@ namespace backend.Services.AuthServices
             if (userId is null)
                 return null;
             var userDetails = await context.Users
+                .Include(u => u.Stores)
                 .Where(u => u.Id.ToString() == userId)
                 .Select(u => new UserDetailsModel
                 {
                     Id = u.Id,
                     Username = u.Username,
                     Email = u.Email,
-                    FullName = u.FullName
+                    FullName = u.FullName,
+                    Stores = u.Stores.Select(s => s.Id).ToList()
                 })
                 .FirstOrDefaultAsync();
             

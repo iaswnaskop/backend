@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace backend.Migrations
 {
     /// <inheritdoc />
-    public partial class AddStoreType : Migration
+    public partial class UpdateStagging : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -23,6 +23,33 @@ namespace backend.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Categories", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "DesignModel",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Model = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DesignModel", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Languages",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    CountryLang = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Abbr = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Languages", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -65,22 +92,6 @@ namespace backend.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Stores",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Address = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Phone = table.Column<string>(type: "nvarchar(max)", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Stores", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Types",
                 columns: table => new
                 {
@@ -102,13 +113,41 @@ namespace backend.Migrations
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     FullName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Phone = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Role = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IsVerified = table.Column<bool>(type: "bit", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    HasPassOnBoarding = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     RefreshToken = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     RefreshTokenExpiryTime = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Users", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Design",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    BgColor = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    BgURL = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Font = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DesignModelId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Design", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Design_DesignModel_DesignModelId",
+                        column: x => x.DesignModelId,
+                        principalTable: "DesignModel",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -131,6 +170,37 @@ namespace backend.Migrations
                         name: "FK_RolePermissions_Roles_RoleId",
                         column: x => x.RoleId,
                         principalTable: "Roles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Stores",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Address = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Phone = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    AFM = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ImageURL = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Facebook = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Instagram = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    TikTok = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    TripAdvisor = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    GoogleBusiness = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DesignId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Stores", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Stores_Design_DesignId",
+                        column: x => x.DesignId,
+                        principalTable: "Design",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -167,6 +237,16 @@ namespace backend.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    NameEng = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DescriptionEng = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    NameDu = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DescriptionDu = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    NameFr = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DescriptionFr = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    NameIt = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DescriptionIt = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    NameEs = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DescriptionEs = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Price = table.Column<double>(type: "float", nullable: false),
                     Available = table.Column<bool>(type: "bit", nullable: false),
@@ -190,6 +270,30 @@ namespace backend.Migrations
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_ProductDetails_Stores_StoreId",
+                        column: x => x.StoreId,
+                        principalTable: "Stores",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "StoreLanguages",
+                columns: table => new
+                {
+                    StoreId = table.Column<int>(type: "int", nullable: false),
+                    LanguageId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_StoreLanguages", x => new { x.StoreId, x.LanguageId });
+                    table.ForeignKey(
+                        name: "FK_StoreLanguages_Languages_LanguageId",
+                        column: x => x.LanguageId,
+                        principalTable: "Languages",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_StoreLanguages_Stores_StoreId",
                         column: x => x.StoreId,
                         principalTable: "Stores",
                         principalColumn: "Id",
@@ -250,6 +354,11 @@ namespace backend.Migrations
                 column: "StoresId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Design_DesignModelId",
+                table: "Design",
+                column: "DesignModelId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ProductDetails_CategoryId",
                 table: "ProductDetails",
                 column: "CategoryId");
@@ -268,6 +377,16 @@ namespace backend.Migrations
                 name: "IX_RolePermissions_PermissionId",
                 table: "RolePermissions",
                 column: "PermissionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_StoreLanguages_LanguageId",
+                table: "StoreLanguages",
+                column: "LanguageId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Stores_DesignId",
+                table: "Stores",
+                column: "DesignId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_StoreTypes_TypeId",
@@ -293,6 +412,9 @@ namespace backend.Migrations
                 name: "RolePermissions");
 
             migrationBuilder.DropTable(
+                name: "StoreLanguages");
+
+            migrationBuilder.DropTable(
                 name: "StoreTypes");
 
             migrationBuilder.DropTable(
@@ -311,6 +433,9 @@ namespace backend.Migrations
                 name: "Roles");
 
             migrationBuilder.DropTable(
+                name: "Languages");
+
+            migrationBuilder.DropTable(
                 name: "Types");
 
             migrationBuilder.DropTable(
@@ -318,6 +443,12 @@ namespace backend.Migrations
 
             migrationBuilder.DropTable(
                 name: "Users");
+
+            migrationBuilder.DropTable(
+                name: "Design");
+
+            migrationBuilder.DropTable(
+                name: "DesignModel");
         }
     }
 }

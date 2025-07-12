@@ -22,6 +22,7 @@ namespace backend.Services.StoreServices
         public async Task<Store> AddStore(AddStoreModel store, Guid userId)
         {
             var user = await _context.Users.FindAsync(userId);
+            
             var storeTypes = await _context.Types
                 .Where(t => store.TypeId.Any(st => st.Equals(t.Id)))
                 .ToListAsync();
@@ -242,5 +243,46 @@ namespace backend.Services.StoreServices
             }).ToList();
             return designModels;
         }
+
+        public async Task<StoreModel> GetStoreByStoreId(int id)
+        {
+            var store = await _context.Stores
+                .FirstOrDefaultAsync(s => s.Id == id);
+            if (store is null)
+                return null;
+
+            var storeModel = new StoreModel
+            {
+                Id = store.Id,
+                Name = store.Name,
+                AFM = store.AFM,
+                ImageURL = store.ImageURL,
+                
+               
+            };
+            return storeModel;
+        }
+        //public async Task<Store> UpdateStorePhotos(UpdateStorePhotos store, Guid userId)
+        //{
+        //    var user = await _context.Users.FindAsync(userId);
+        //    if (user is null)
+        //        return null;
+        //    var storeToUpdate = await _context.Stores
+        //        .Include(s => s.Users)
+        //        .FirstOrDefaultAsync(s => s.Id == store.StoreId && s.Users.Any(u => u.Id == userId));
+        //    if (storeToUpdate is null)
+        //        return null;
+        //    if (store.Logo != null)
+        //    {
+        //        storeToUpdate.ImageURL = store.Logo;
+        //    }
+        //    if (store.BgPhoto != null)
+        //    {
+        //        storeToUpdate.Design.BgURL = store.BgPhoto;
+        //    }
+        //    _context.Stores.Update(storeToUpdate);
+        //    await _context.SaveChangesAsync();
+        //    return storeToUpdate;
+        //}
     }
 }
