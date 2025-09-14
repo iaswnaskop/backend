@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using backend.Data;
 
@@ -11,9 +12,11 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20250822104353_RemoveReqFromLang")]
+    partial class RemoveReqFromLang
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -123,14 +126,9 @@ namespace backend.Migrations
                     b.Property<string>("Font")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("StoreId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.HasIndex("DesignModelId");
-
-                    b.HasIndex("StoreId");
 
                     b.ToTable("Design");
                 });
@@ -236,9 +234,6 @@ namespace backend.Migrations
                     b.Property<int?>("CategoryId")
                         .HasColumnType("int");
 
-                    b.Property<bool>("ContainsNuts")
-                        .HasColumnType("bit");
-
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
@@ -257,23 +252,8 @@ namespace backend.Migrations
                     b.Property<string>("DescriptionIt")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("GlutenFree")
-                        .HasColumnType("bit");
-
                     b.Property<string>("ImageUrl")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsHidden")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsKosher")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsSpicy")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsVegan")
-                        .HasColumnType("bit");
 
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
@@ -311,40 +291,6 @@ namespace backend.Migrations
                     b.HasIndex("StoreId");
 
                     b.ToTable("ProductDetails");
-                });
-
-            modelBuilder.Entity("backend.Entities.Promo", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("EndDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ImageUrl")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("PromoUrl")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("StartDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("StoreId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("StoreId");
-
-                    b.ToTable("Promos");
                 });
 
             modelBuilder.Entity("backend.Entities.Role", b =>
@@ -424,15 +370,6 @@ namespace backend.Migrations
                     b.Property<string>("Address")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("BitCoin")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("Card")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("Cash")
-                        .HasColumnType("bit");
-
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
@@ -448,9 +385,6 @@ namespace backend.Migrations
                     b.Property<string>("GoogleBusiness")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("IRIS")
-                        .HasColumnType("bit");
-
                     b.Property<string>("ImageURL")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -458,23 +392,14 @@ namespace backend.Migrations
                     b.Property<string>("Instagram")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("PayPal")
-                        .HasColumnType("bit");
 
                     b.Property<string>("Phone")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PurchasingManager")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("QRCodeURL")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("StorePhone")
@@ -493,6 +418,8 @@ namespace backend.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("DesignId");
 
                     b.ToTable("Stores");
                 });
@@ -525,28 +452,6 @@ namespace backend.Migrations
                     b.HasIndex("TypeId");
 
                     b.ToTable("StoreTypes");
-                });
-
-            modelBuilder.Entity("backend.Entities.SuggestProduct", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ProductDetailId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SuggestedProductDetailId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProductDetailId")
-                        .IsUnique();
-
-                    b.ToTable("SuggestProducts");
                 });
 
             modelBuilder.Entity("backend.Entities.Type", b =>
@@ -660,10 +565,6 @@ namespace backend.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("backend.Entities.Store", null)
-                        .WithMany("Design")
-                        .HasForeignKey("StoreId");
-
                     b.Navigation("DesignModel");
                 });
 
@@ -692,17 +593,6 @@ namespace backend.Migrations
                     b.Navigation("Store");
                 });
 
-            modelBuilder.Entity("backend.Entities.Promo", b =>
-                {
-                    b.HasOne("backend.Entities.Store", "Store")
-                        .WithMany("Promos")
-                        .HasForeignKey("StoreId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Store");
-                });
-
             modelBuilder.Entity("backend.Entities.RolePermission", b =>
                 {
                     b.HasOne("backend.Entities.Permission", "Permission")
@@ -725,12 +615,23 @@ namespace backend.Migrations
             modelBuilder.Entity("backend.Entities.Schedule", b =>
                 {
                     b.HasOne("backend.Entities.Store", "Store")
-                        .WithMany("Schedules")
+                        .WithMany()
                         .HasForeignKey("StoreId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Store");
+                });
+
+            modelBuilder.Entity("backend.Entities.Store", b =>
+                {
+                    b.HasOne("backend.Entities.Design", "Design")
+                        .WithMany()
+                        .HasForeignKey("DesignId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Design");
                 });
 
             modelBuilder.Entity("backend.Entities.StoreLanguage", b =>
@@ -771,17 +672,6 @@ namespace backend.Migrations
                     b.Navigation("Type");
                 });
 
-            modelBuilder.Entity("backend.Entities.SuggestProduct", b =>
-                {
-                    b.HasOne("backend.Entities.ProductDetail", "ProductDetail")
-                        .WithOne("SuggestedProducts")
-                        .HasForeignKey("backend.Entities.SuggestProduct", "ProductDetailId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ProductDetail");
-                });
-
             modelBuilder.Entity("backend.Entities.Category", b =>
                 {
                     b.Navigation("ProductDetails");
@@ -802,12 +692,6 @@ namespace backend.Migrations
                     b.Navigation("ProductDetails");
                 });
 
-            modelBuilder.Entity("backend.Entities.ProductDetail", b =>
-                {
-                    b.Navigation("SuggestedProducts")
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("backend.Entities.Role", b =>
                 {
                     b.Navigation("RolePermissions");
@@ -815,13 +699,7 @@ namespace backend.Migrations
 
             modelBuilder.Entity("backend.Entities.Store", b =>
                 {
-                    b.Navigation("Design");
-
                     b.Navigation("ProductDetails");
-
-                    b.Navigation("Promos");
-
-                    b.Navigation("Schedules");
 
                     b.Navigation("StoreLanguages");
 

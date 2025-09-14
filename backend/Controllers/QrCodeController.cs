@@ -47,6 +47,7 @@ namespace backend.Controllers
             }
 
             var qrCodeURL = await _cloudinaryService.UploadPhotoAsync(qrCodeImage, storeInfo.AFM);
+            var updatedStore = await _storeService.UpdateStoreQrCodeUrl(storeId, qrCodeURL);
             return qrCodeURL;
         }
     }

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using backend.Data;
 
@@ -11,9 +12,11 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20250830140411_PromosSchedule")]
+    partial class PromosSchedule
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -331,9 +334,6 @@ namespace backend.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<string>("PromoUrl")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
@@ -424,15 +424,6 @@ namespace backend.Migrations
                     b.Property<string>("Address")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("BitCoin")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("Card")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("Cash")
-                        .HasColumnType("bit");
-
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
@@ -448,9 +439,6 @@ namespace backend.Migrations
                     b.Property<string>("GoogleBusiness")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("IRIS")
-                        .HasColumnType("bit");
-
                     b.Property<string>("ImageURL")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -458,15 +446,9 @@ namespace backend.Migrations
                     b.Property<string>("Instagram")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("PayPal")
-                        .HasColumnType("bit");
 
                     b.Property<string>("Phone")
                         .HasColumnType("nvarchar(max)");
@@ -695,7 +677,7 @@ namespace backend.Migrations
             modelBuilder.Entity("backend.Entities.Promo", b =>
                 {
                     b.HasOne("backend.Entities.Store", "Store")
-                        .WithMany("Promos")
+                        .WithMany()
                         .HasForeignKey("StoreId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -818,8 +800,6 @@ namespace backend.Migrations
                     b.Navigation("Design");
 
                     b.Navigation("ProductDetails");
-
-                    b.Navigation("Promos");
 
                     b.Navigation("Schedules");
 

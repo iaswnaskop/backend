@@ -34,11 +34,18 @@
         public int ProductId { get; set; }
 
         public int? CategoryId { get; set; }
+        public bool IsHidden { get; set; } = false;
+        public bool IsVegan { get; set; } = false;
+        public bool GlutenFree { get; set; } = false;
+        public bool IsKosher { get; set; } = false;
+        public bool IsSpicy { get; set; } = false;
+        public bool ContainsNuts { get; set; } = false;
 
         public virtual Category? Category { get; set; }
 
         public virtual Product Product { get; set; } = null!;
 
         public virtual Store Store { get; set; } = null!;
+        public virtual SuggestProduct SuggestedProducts { get; set; }
     }
 }

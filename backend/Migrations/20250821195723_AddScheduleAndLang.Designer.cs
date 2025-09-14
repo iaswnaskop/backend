@@ -12,8 +12,8 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250507110726_UpdateStagging")]
-    partial class UpdateStagging
+    [Migration("20250821195723_AddScheduleAndLang")]
+    partial class AddScheduleAndLang
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -67,7 +67,47 @@ namespace backend.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("DescriptionDu")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DescriptionEng")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DescriptionEs")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DescriptionFr")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DescriptionIt")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NameDu")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NameEng")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NameEs")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NameFr")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NameIt")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -279,6 +319,36 @@ namespace backend.Migrations
                     b.ToTable("RolePermissions");
                 });
 
+            modelBuilder.Entity("backend.Entities.Schedule", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<TimeSpan>("ClosingTime")
+                        .HasColumnType("time");
+
+                    b.Property<int>("DayOfWeek")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsClosed")
+                        .HasColumnType("bit");
+
+                    b.Property<TimeSpan>("OpeningTime")
+                        .HasColumnType("time");
+
+                    b.Property<int>("StoreId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StoreId");
+
+                    b.ToTable("Schedules");
+                });
+
             modelBuilder.Entity("backend.Entities.Store", b =>
                 {
                     b.Property<int>("Id")
@@ -323,10 +393,22 @@ namespace backend.Migrations
                     b.Property<string>("Phone")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("PurchasingManager")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("StorePhone")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("TikTok")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("TripAdvisor")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("WifiName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("WifiPassword")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -522,6 +604,17 @@ namespace backend.Migrations
                     b.Navigation("Permission");
 
                     b.Navigation("Role");
+                });
+
+            modelBuilder.Entity("backend.Entities.Schedule", b =>
+                {
+                    b.HasOne("backend.Entities.Store", "Store")
+                        .WithMany()
+                        .HasForeignKey("StoreId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Store");
                 });
 
             modelBuilder.Entity("backend.Entities.Store", b =>

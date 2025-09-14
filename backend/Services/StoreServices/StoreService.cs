@@ -2,6 +2,7 @@
 using backend.Data;
 using backend.Entities;
 using backend.Models;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 
@@ -49,13 +50,13 @@ namespace backend.Services.StoreServices
                 TikTok = store.TikTok,
                 TripAdvisor = store.TripAdvisor,
                 GoogleBusiness = store.GoogleBusiness,
-                Design = new Design
-                {
-                    BgColor = store.DesignColor,
-                    Font = store.DesignFont,
-                    BgURL = store.DesignBackgroundURL,
-                    DesignModelId = store.DesignModelId
-                }
+                //Design = new Design
+                //{
+                //    BgColor = store.DesignColor,
+                //    Font = store.DesignFont,
+                //    BgURL = store.DesignBackgroundURL,
+                //    DesignModelId = store.DesignModelId
+                //}
                 
 
             };
@@ -75,18 +76,19 @@ namespace backend.Services.StoreServices
                 LanguageId = language.Id
             }).ToList();
 
-            //var newDesign = new Design
-            //{
-            //    BgColor = store.DesignColor,
-            //    Font = store.DesignFont,
-            //    BgURL = store.DesignBackgroundURL,
-            //    DesignModelId = store.DesignModelId
-            //};
-            //_context.Design.Add(newDesign);
+            var newDesign = new Design
+            {
+                BgColor = store.DesignColor,
+                Font = store.DesignFont,
+                BgURL = store.DesignBackgroundURL,
+                DesignModelId = store.DesignModelId
+            };
+            _context.Design.Add(newDesign);
 
-            //await _context.SaveChangesAsync();
-            //newStore.DesignId = newDesign.Id;
+            await _context.SaveChangesAsync();
+            newStore.DesignId = newDesign.Id;
             _context.Stores.Update(newStore);
+
             user.HasPassOnBoarding = true;
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
@@ -107,17 +109,43 @@ namespace backend.Services.StoreServices
 
             var store = await _context.Stores
                 .Include(s => s.Users)
+                .Include(s => s.ProductDetails)
+                .Include(s => s.Categories)
+                .Include(s => s.StoreTypes)
+                    .ThenInclude(st => st.Type)
+                .Include(s => s.StoreLanguages)
+                    .ThenInclude(sl => sl.Language)
+                .Include(s => s.Schedules)
                 .FirstOrDefaultAsync(s => s.Id == id && s.Users.Any(u => u.Id == userId));
+
+            var design = await _context.Design.Where(d => d.Id == store.DesignId)
+                .Include(d => d.DesignModel)
+                .ToListAsync();
+            
+
+            store.Design = design;
+            
+
+
+
             if (store is null)
                 return null;
             return store;
         }
 
-        public async Task<Store> UpdateStore(int id, StoreModel request)
+        public async Task<Store> UpdateStore(int id, UpdateStoreModel request)
         {
             var store = await _context.Stores
-                .Include(s => s.StoreTypes)
+                .Include(s => s.StoreLanguages)
+                .Include(s => s.Schedules)
                 .FirstOrDefaultAsync(s => s.Id == id);
+
+            var storeLanguages = await _context.StoreLanguages
+                .Where(t => t.StoreId == store.Id)
+                .ToListAsync();
+            var languages = await _context.Languages
+                .Where(t => request.Languages.Any(st => st.Equals(t.Id)))
+                .ToListAsync();
 
             if (store is null)
                 return null;
@@ -173,26 +201,82 @@ namespace backend.Services.StoreServices
             {
                 store.GoogleBusiness = request.GoogleBusiness;
             }
-
-
-            // Ενημέρωση των StoreTypes
-            if (request.TypeModel != null)
+            if (request.PurchasingManager != null && request.PurchasingManager != store.PurchasingManager)
             {
-                // Διαγραφή των παλιών StoreTypes
-                _context.StoreTypes.RemoveRange(store.StoreTypes);
-
-                // Προσθήκη των νέων StoreTypes
-                var storeTypes = await _context.Types
-                    .Where(t => request.TypeModel.Any(st => st.Id == t.Id))
-                    .ToListAsync();
-
-                store.StoreTypes = storeTypes.Select(type => new StoreType
+                store.PurchasingManager = request.PurchasingManager;
+            }
+            if (request.WifiName != null && request.WifiName != store.WifiName)
+            {
+                store.WifiName = request.WifiName;
+            }
+            if (request.WifiPassword != null && request.WifiPassword != store.WifiPassword)
+            {
+                store.WifiPassword = request.WifiPassword;
+            }
+            if (request.StorePhone != null && request.StorePhone != store.StorePhone)
+            {
+                store.StorePhone = request.StorePhone;
+            }
+            //if (request.QRCodeURL != null && request.QRCodeURL != store.QRCodeURL)
+            //{
+            //    store.QRCodeURL = request.QRCodeURL;
+            //}
+            if (request.Cash.HasValue && request.Cash != store.Cash)
+            {
+                store.Cash = request.Cash.Value;
+            }
+            if (request.Card.HasValue && request.Card != store.Card)
+            {
+                store.Card = request.Card.Value;
+            }
+            if (request.PayPal.HasValue && request.PayPal != store.PayPal)
+            {
+                store.PayPal = request.PayPal.Value;
+            }
+            if (request.BitCoin.HasValue && request.BitCoin != store.BitCoin)
+            {
+                store.BitCoin = request.BitCoin.Value;
+            }
+            if (request.IRIS.HasValue && request.IRIS != store.IRIS)
+            {
+                store.IRIS = request.IRIS.Value;
+            }
+            if (request.IsActive.HasValue && request.IsActive != store.IsActive)
+            {
+                store.IsActive = request.IsActive.Value;
+            }
+            if (request.Languages != null && request.Languages.Count > 0)
+            {
+                
+                if (storeLanguages != null)
+                    _context.StoreLanguages.RemoveRange(storeLanguages);
+                var newLanguage = languages.Select(t => new StoreLanguage
                 {
                     StoreId = store.Id,
-                    TypeId = type.Id
+                    LanguageId = t.Id
                 }).ToList();
+                await _context.StoreLanguages.AddRangeAsync(newLanguage);
             }
             
+
+
+
+            if (request.ScheduleModel != null)
+            {
+                var existingSchedules = _context.Schedules.Where(s => s.StoreId == store.Id);
+                if(existingSchedules != null)
+                    _context.Schedules.RemoveRange(existingSchedules);
+                var newSchedules = request.ScheduleModel.Select(s => new Schedule
+                {
+                    StoreId = store.Id,
+                    DayOfWeek = (DayOfWeek)s.DayOfWeek,
+                    OpeningTime = TimeSpan.Parse(s.OpeningTime),
+                    ClosingTime = TimeSpan.Parse(s.ClosingTime),
+                    IsClosed = s.IsClosed
+                }).ToList();
+                await _context.Schedules.AddRangeAsync(newSchedules);
+            }
+
 
             await _context.SaveChangesAsync();
 
@@ -256,7 +340,7 @@ namespace backend.Services.StoreServices
                 Id = store.Id,
                 Name = store.Name,
                 AFM = store.AFM,
-                ImageURL = store.ImageURL,
+                ImageURL = store.ImageURL
                 
                
             };
@@ -284,5 +368,62 @@ namespace backend.Services.StoreServices
         //    await _context.SaveChangesAsync();
         //    return storeToUpdate;
         //}
+        public async Task<List<PromoModel>> AddPromos(List<PromoModel> promos, int storeId)
+        {
+            var store = await _context.Stores.FindAsync(storeId);
+            if (store == null)
+            {
+                return null; // or throw an exception based on your use case
+            }
+
+            var newPromos = new List<Promo>();
+            foreach (var promo in promos)
+            {
+                var newPromo = new Promo
+                {
+                    ImageUrl = promo.ImageUrl,
+                    StoreId = storeId
+                };
+                newPromos.Add(newPromo);
+                _context.Promos.Add(newPromo);
+            }
+
+            await _context.SaveChangesAsync();
+
+            // Map the newly created Promo entities to PromoModel
+            var promoModels = newPromos.Select(p => new PromoModel
+            {
+                Id = p.Id,
+                ImageUrl = p.ImageUrl
+            }).ToList();
+
+            return promoModels;
+        }
+
+        public async Task<Store> UpdateStoreQrCodeUrl(int storeId, string qrCodeUrl)
+        {
+            var store = await _context.Stores.FindAsync(storeId);
+            if (store == null)
+            {
+                return null; // ή ρίξτε μια εξαίρεση ανάλογα με την περίπτωση χρήσης σας
+            }
+            store.QRCodeURL = qrCodeUrl;
+            _context.Stores.Update(store);
+            await _context.SaveChangesAsync();
+            return store;
+        }
+        public async Task<List<PromoModel>> GetPromosByStoreId(int id)
+        {
+            var promos = await _context.Promos
+                .Where(p => p.StoreId == id)
+                .ToListAsync();
+            var promoModels = promos.Select(p => new PromoModel
+            {
+                Id = p.Id,
+                ImageUrl = p.ImageUrl,
+                
+            }).ToList();
+            return promoModels;
+        }
     }
 }

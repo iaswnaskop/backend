@@ -40,10 +40,10 @@ namespace backend.Controllers
             return Ok(addedCategory);
         }
 
-        [HttpGet("category-by-store/{id}")]
+        [HttpGet("category-by-store")]
         public async Task<ActionResult<List<Category>>> GetCategoriesByStore(int storeId)
         {
-            var categories = await _categoryService.GetCategoriesByStore( storeId);
+            var categories = await _categoryService.GetCategoriesByStore(storeId);
             return Ok(categories);
         }
     }

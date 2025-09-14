@@ -12,13 +12,20 @@ namespace backend.Controllers
     {
         //[Authorize(Roles = "Admin")]
         [HttpPost("register")]
-        public async Task<ActionResult<User>> Register(UserRegisterModel request)
+        public async Task<ActionResult<UserRegisterModel>> Register(UserRegisterModel request)
         {
             var user = await authService.RegisterAsync(request);
             if (user is null)
                 return BadRequest("Username already exists.");
 
-            return Ok(user);
+            var response = new UserRegisterModel
+            {
+                
+                Username = user.Username,
+                Email = user.Email
+            };
+
+            return Ok(response);
         }
 
 

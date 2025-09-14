@@ -35,13 +35,121 @@ namespace backend.Controllers
         }
         
         [HttpGet("store/{id}")]
-        
         public async Task<ActionResult<Store>> GetStore(int id, [FromHeader]Guid userId)
         {
             var store = await _storeService.GetStore(id, userId);
             if (store is null)
                 return NotFound("Sorryy");
-            return Ok(store);
+            var promo = await _storeService.GetPromosByStoreId(store.Id);
+            var storeModel = new StoreModel
+            {
+                Id = store.Id,
+                Description = store.Description,
+                Name = store.Name,
+                Address = store.Address,
+                AFM = store.AFM,
+                Phone = store.Phone,
+                ImageURL = store.ImageURL,
+                Email = store.Email,
+                Facebook = store.Facebook,
+                Instagram = store.Instagram,
+                TikTok = store.TikTok,
+                TripAdvisor = store.TripAdvisor,
+                GoogleBusiness = store.GoogleBusiness,
+                PurchasingManager = store.PurchasingManager,
+                WifiName = store.WifiName,
+                WifiPassword = store.WifiPassword,
+                StorePhone = store.StorePhone,
+                QRCodeURL = store.QRCodeURL,
+                Card = store.Card,
+                IRIS = store.IRIS,
+                PayPal = store.PayPal,
+                BitCoin = store.BitCoin,
+                Cash = store.Cash,
+                IsActive = store.IsActive,
+                Categories = store.Categories.Select(c => new CategoryModel
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    NameEng = c.NameEng,
+                    NameDu = c.NameDu,
+                    NameFr = c.NameFr,
+                    NameIt = c.NameIt,
+                    NameEs = c.NameEs,
+                    DescriptionEng = c.DescriptionEng,
+                    DescriptionDu = c.DescriptionDu,
+                    DescriptionFr = c.DescriptionFr,
+                    DescriptionIt = c.DescriptionIt,
+                    DescriptionEs = c.DescriptionEs,
+                    Description = c.Description
+                    //ImageURL = c.ImageURL
+                }).ToList(),
+                ProductDetails = store.ProductDetails.Select(pd => new ProductDetailModel
+                {
+                    Id = pd.Id,
+                    Name = pd.Name,
+                    NameEng = pd.NameEng,
+                    NameEs = pd.NameEs,
+                    NameDu = pd.NameDu,
+                    NameFr = pd.NameFr,
+                    NameIt = pd.NameIt,
+                    Available = pd.Available,
+                    DescriptionEng = pd.DescriptionEng,
+                    DescriptionDu = pd.DescriptionDu,
+                    DescriptionFr = pd.DescriptionFr,
+                    DescriptionIt = pd.DescriptionIt,
+                    DescriptionEs = pd.DescriptionEs,
+                    Description = pd.Description,
+                    Price = pd.Price,
+                    CategoryId = pd.CategoryId,
+                    //ImageURL = pd.ImageURL,
+                }).ToList(),
+                StoreType = store.StoreTypes.Select(st => new TypeModel
+                {
+                    Id = st.Type.Id,
+                    Name = st.Type.Name
+                    //Description = st.Description
+                }).ToList(),
+                Languages = store.StoreLanguages.Select(sl => new LanguageModel
+                {
+                    Id = sl.Language.Id,
+                    CountryLang = sl.Language.CountryLang,
+                    Abbr = sl.Language.Abbr
+                    //Description = sl.Description
+                }).ToList(),
+                Design = store.Design.Select(d => new GetDesign
+                {
+                    Id = d.Id,
+                    BgColor = d.BgColor,
+                    BgURL = d.BgURL,
+                    Font = d.Font,
+                    DesignModel = new DesignModel
+                    {
+                        Id = d.DesignModel.Id,
+                        Model = d.DesignModel.Model,
+                    }
+                }).ToList(),
+                Schedules = store.Schedules.Select(s => new Schedule
+                {
+                    Id = s.Id,
+                    DayOfWeek = s.DayOfWeek,
+                    OpeningTime = s.OpeningTime,
+                    ClosingTime = s.ClosingTime,
+                    IsClosed = s.IsClosed
+                }).ToList(),
+                Promo = promo.Select(p => new PromoModel
+                {
+                    Id = p.Id,
+                    ImageUrl = p.ImageUrl,
+                    
+                }).ToList()
+
+            };
+            
+
+
+
+            return Ok(storeModel);
         }
 
         
@@ -52,12 +160,12 @@ namespace backend.Controllers
             if (store is null)
                 return BadRequest("Invalid store data or user ID");
             var urls = new List<string>();
-            if (store.Logo is null || (store.DesignBackgroundURL is null && store.DesignColor is null))
-                return BadRequest("Please upload images or Backround color");
+            if (store.Logo is null && store.DesignColor is null)
+                return BadRequest("Please upload images and Backround color");
 
             
 
-            if (store.DesignColor is not null)
+            if (store.BgPhoto is not null)
             {
                  var files = new List<IFormFile> { store.Logo, store.BgPhoto };
                  urls = await _cloudinaryService.UploadPhotosAsync(files, store.AFM);
@@ -69,7 +177,7 @@ namespace backend.Controllers
             }
 
             store.ImageURL = urls.ElementAtOrDefault(0);
-            if (store.DesignColor is not null)
+            if (store.BgPhoto is not null)
             {
                 store.DesignBackgroundURL = urls.ElementAtOrDefault(1);
 
@@ -86,15 +194,63 @@ namespace backend.Controllers
         }
 
         
-        [HttpPut("update-store{id}")]
-        public async Task<ActionResult<Store>> UpdateStore(int id, StoreModel request)
+        [HttpPut("update-store/{id}")]
+        [Consumes("multipart/form-data")]
+        public async Task<ActionResult<UpdateStoreModel>> UpdateStore(int id, [FromForm] UpdateStoreModel request)
         {
-            var result = await _storeService.UpdateStore(id, request);
-            if (result is null)
+            var image = request.Logo;
+            var logoURL = string.Empty;
+
+            if (image != null)
+            {
+                 logoURL = await _cloudinaryService.UpdatePhoto(image, request.AFM);
+            }
+            request.ImageURL = logoURL;
+
+            var store = await _storeService.UpdateStore(id, request);
+            if (store is null)
                 return NotFound("Sorryy");
 
-            return Ok(result);
 
+            
+
+            var result = new UpdateStoreModel
+            {
+                //Id = store.Id,
+                Description = store.Description,
+                Name = store.Name,
+                Address = store.Address,
+                AFM = store.AFM,
+                Phone = store.Phone,
+                ImageURL = store.ImageURL,
+                Email = store.Email,
+                Facebook = store.Facebook,
+                Instagram = store.Instagram,
+                TikTok = store.TikTok,
+                TripAdvisor = store.TripAdvisor,
+                GoogleBusiness = store.GoogleBusiness,
+                PurchasingManager = store.PurchasingManager,
+                WifiName = store.WifiName,
+                WifiPassword = store.WifiPassword,
+                StorePhone = store.StorePhone,
+                QRCodeURL = store.QRCodeURL,
+                ScheduleModel = store.Schedules.Select(s => new ScheduleModel
+                {
+                    DayOfWeek = (int)s.DayOfWeek,
+                    OpeningTime = s.OpeningTime.ToString(@"hh\:mm"),
+                    ClosingTime = s.ClosingTime.ToString(@"hh\:mm"),
+                    IsClosed = s.IsClosed
+                }).ToList(), 
+                Cash = store.Cash,
+                Card = store.Card,
+                PayPal = store.PayPal,
+                BitCoin = store.BitCoin,
+                IRIS = store.IRIS,
+                IsActive = store.IsActive,
+                Languages = store.StoreLanguages.Select(sl => sl.LanguageId).ToList()
+            };
+
+            return Ok(result);
         }
         //[HttpPut("update-store-photos")]
         //public async Task<ActionResult<Store>> UpdateStorePhotos([FromForm] UpdateStorePhotos store, [FromForm] Guid userId)
@@ -135,6 +291,21 @@ namespace backend.Controllers
         {
             var storeDesignModels = await _storeService.GetStoreDesignModels();
             return Ok(storeDesignModels);
+        }
+        [HttpPost("add-promos")]
+        [Consumes("multipart/form-data")]
+        public async Task<ActionResult<List<PromoModel>>> AddPromos([FromForm] List<PromoModel> promos, int storeId)
+        {
+            var store = await _storeService.GetStoreByStoreId(storeId);
+            var afm = store.AFM;
+            var files = promos.Select(p => p.Image).ToList();
+            var urls = await _cloudinaryService.UploadPromoPhotos(files, afm);
+            for (int i = 0; i < promos.Count; i++)
+            {
+                promos[i].ImageUrl = urls.ElementAtOrDefault(i);
+            }
+            var addedPromos = await _storeService.AddPromos(promos, storeId);
+            return Ok(addedPromos);
         }
     }
 }

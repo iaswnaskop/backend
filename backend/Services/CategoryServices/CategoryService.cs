@@ -33,6 +33,16 @@ namespace backend.Services.CategoryServices
             {
                 Name = category.Name,
                 Description = category.Description,
+                NameEng = category.NameEng,
+                DescriptionEng = category.DescriptionEng,
+                NameDu = category.NameDu,
+                DescriptionDu = category.DescriptionDu,
+                NameFr = category.NameFr,
+                DescriptionFr = category.DescriptionFr,
+                NameIt = category.NameIt,
+                DescriptionIt = category.DescriptionIt,
+                NameEs = category.NameEs,
+                DescriptionEs = category.DescriptionEs,
                 Stores = new List<Store> { store }
             };
 

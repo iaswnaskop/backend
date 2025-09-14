@@ -11,7 +11,7 @@ namespace backend.Services.AuthServices
 {
     public class AuthService(DataContext context, IConfiguration configuration) : IAuthService
     {
-        public async Task<User?> RegisterAsync(UserRegisterModel request)
+        public async Task<User> RegisterAsync(UserRegisterModel request)
         {
             if (await context.Users.AnyAsync(u => u.Username == request.Username))
             {

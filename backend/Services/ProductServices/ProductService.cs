@@ -31,8 +31,14 @@ namespace backend.Services.ProductServices
         {
             var newProduct = new Product
             {
-                Name = product.Name
-                
+                Name = product.Name,
+                NameEng = product.NameEng,
+                NameDu = product.NameDu,
+                NameFr = product.NameFr,
+                NameIt = product.NameIt,
+                NameEs = product.NameEs
+
+
             };
             _context.Products.Add(newProduct);
             await _context.SaveChangesAsync();
@@ -45,13 +51,42 @@ namespace backend.Services.ProductServices
             {
                 ProductId = productId,
                 Description = productDetail.Description,
+                DescriptionEng = productDetail.DescriptionEng,
+                DescriptionDu = productDetail.DescriptionDu,
+                DescriptionFr = productDetail.DescriptionFr,
+                DescriptionIt = productDetail.DescriptionIt,
+                DescriptionEs = productDetail.DescriptionEs,
                 Price = productDetail.Price,
                 Name = productDetail.Name,
-                Available = productDetail.Available,
+                NameEng = productDetail.NameEng,
+                NameDu = productDetail.NameDu,
+                NameFr = productDetail.NameFr,
+                NameIt = productDetail.NameIt,
+                NameEs = productDetail.NameEs,
+                IsHidden = productDetail.IsHidden,
+                IsVegan = productDetail.IsVegan,
+                GlutenFree = productDetail.GlutenFree,
+                IsKosher = productDetail.IsKosher,
+                IsSpicy = productDetail.IsSpicy,
+                ContainsNuts = productDetail.ContainsNuts,
+                Available = true,
                 StoreId = storeId,
-                CategoryId = categoryId
+                CategoryId = categoryId,
+                ImageUrl = productDetail.ImageUrl
+
             };
+            
             _context.ProductDetails.Add(newProductDetail);
+            foreach(var suggestedId in productDetail.SuggestedProduct)
+            {
+                var suggestProduct = new SuggestProduct
+                {
+                    ProductDetailId = newProductDetail.Id,
+                    SuggestedProductDetailId = suggestedId,
+                    
+                };
+                _context.SuggestProducts.Add(suggestProduct);
+            }
             await _context.SaveChangesAsync();
             return newProductDetail;
         }
@@ -66,6 +101,7 @@ namespace backend.Services.ProductServices
                 .Include(p => p.Store)
                 .Include(p => p.Category)
                 .Include(p => p.Product)
+                .Include(p => p.SuggestedProducts)
                 .FirstOrDefaultAsync(p => p.Id == id);
             if(productDetail == null)
                 return null;
@@ -93,6 +129,26 @@ namespace backend.Services.ProductServices
             {
                 existingProductDetail.Name = productDetail.Name;
             }
+            if (!string.Equals(existingProductDetail.NameEng, productDetail.NameEng, StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(productDetail.NameEng))
+            {
+                existingProductDetail.NameEng = productDetail.NameEng;
+            }
+            if (!string.Equals(existingProductDetail.NameDu, productDetail.NameDu, StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(productDetail.NameDu))
+            {
+                existingProductDetail.NameDu = productDetail.NameDu;
+            }
+            if (!string.Equals(existingProductDetail.NameFr, productDetail.NameFr, StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(productDetail.NameFr))
+            {
+                existingProductDetail.NameFr = productDetail.NameFr;
+            }
+            if (!string.Equals(existingProductDetail.NameIt, productDetail.NameIt, StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(productDetail.NameIt))
+            {
+                existingProductDetail.NameIt = productDetail.NameIt;
+            }
+            if (!string.Equals(existingProductDetail.NameEs, productDetail.NameEs, StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(productDetail.NameEs))
+            {
+                existingProductDetail.NameEs = productDetail.NameEs;
+            }
 
             if (existingProductDetail.Price != productDetail.Price)
             {
@@ -103,11 +159,73 @@ namespace backend.Services.ProductServices
             {
                 existingProductDetail.Description = productDetail.Description;
             }
+            if (!string.Equals(existingProductDetail.DescriptionEng, productDetail.DescriptionEng, StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(productDetail.DescriptionEng))
+            {
+                existingProductDetail.DescriptionEng = productDetail.DescriptionEng;
+            }
+            if (!string.Equals(existingProductDetail.DescriptionDu, productDetail.DescriptionDu, StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(productDetail.DescriptionDu))
+            {
+                existingProductDetail.DescriptionDu = productDetail.DescriptionDu;
+            }
+            if (!string.Equals(existingProductDetail.DescriptionFr, productDetail.DescriptionFr, StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(productDetail.DescriptionFr))
+            {
+                existingProductDetail.DescriptionFr = productDetail.DescriptionFr;
+            }
+            if (!string.Equals(existingProductDetail.DescriptionIt, productDetail.DescriptionIt, StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(productDetail.DescriptionIt))
+            {
+                existingProductDetail.DescriptionIt = productDetail.DescriptionIt;
+            }
+            if (!string.Equals(existingProductDetail.DescriptionEs, productDetail.DescriptionEs, StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(productDetail.DescriptionEs))
+            {
+                existingProductDetail.DescriptionEs = productDetail.DescriptionEs;
+            }
 
             if (existingProductDetail.Available != productDetail.Available)
             {
                 existingProductDetail.Available = productDetail.Available;
             }
+            if (existingProductDetail.IsHidden != productDetail.IsHidden)
+            {
+                existingProductDetail.IsHidden = productDetail.IsHidden;
+            }
+            if (existingProductDetail.IsVegan != productDetail.IsVegan)
+            {
+                existingProductDetail.IsVegan = productDetail.IsVegan;
+            }
+            if (existingProductDetail.GlutenFree != productDetail.GlutenFree)
+            {
+                existingProductDetail.GlutenFree = productDetail.GlutenFree;
+            }
+            if (existingProductDetail.IsKosher != productDetail.IsKosher)
+            {
+                existingProductDetail.IsKosher = productDetail.IsKosher;
+            }
+            if (existingProductDetail.IsSpicy != productDetail.IsSpicy)
+            {
+                existingProductDetail.IsSpicy = productDetail.IsSpicy;
+            }
+            if (existingProductDetail.ContainsNuts != productDetail.ContainsNuts)
+            {
+                existingProductDetail.ContainsNuts = productDetail.ContainsNuts;
+            }
+           
+            
+            if (existingProductDetail.SuggestedProducts != null)
+            {
+                    _context.SuggestProducts.RemoveRange(_context.SuggestProducts.Where(sp => sp.ProductDetailId == existingProductDetail.Id));
+                    foreach (var suggestedId in productDetail.SuggestedProduct)
+                    {
+                        var suggestProduct = new SuggestProduct
+                        {
+                            ProductDetailId = existingProductDetail.Id,
+                            SuggestedProductDetailId = suggestedId,
+                        };
+                        _context.SuggestProducts.Add(suggestProduct);
+                    }
+            }
+                
+            
+
 
             // Update other properties as needed
             await _context.SaveChangesAsync();
