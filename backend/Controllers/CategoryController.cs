@@ -24,8 +24,11 @@ namespace backend.Controllers
             return Ok(categories);
         }
 
+       
+
+
         [HttpGet("category/{id}")]
-        public async Task<ActionResult<Category>> GetCategoryById(int id)
+        public async Task<ActionResult<CategoryModel>> GetCategoryById(int id)
         {
             var category = await _categoryService.GetCategoryById(id);
             if (category is null)
@@ -34,7 +37,7 @@ namespace backend.Controllers
         }
 
         [HttpPost("add-category")]
-        public async Task<ActionResult<Category>> AddCategory(CategoryModel category, [FromHeader] int storeId)
+        public async Task<ActionResult<CategoryModel>> AddCategory(CategoryModel category, [FromHeader] int storeId)
         {
             var addedCategory = await _categoryService.AddCategory(category, storeId);
             return Ok(addedCategory);
@@ -45,6 +48,27 @@ namespace backend.Controllers
         {
             var categories = await _categoryService.GetCategoriesByStore(storeId);
             return Ok(categories);
+        }
+
+        [HttpPut("update-category/{id}")]
+        public async Task<ActionResult<Category>> UpdateCategory(int id, CategoryModel category)
+        {
+            var updatedCategory = await _categoryService.UpdateCategory(id, category);
+            if (updatedCategory is null)
+                return NotFound("Category not found");
+
+            return Ok(updatedCategory);
+        }
+
+        [HttpDelete("delete-category/{id}")]
+        public async Task<ActionResult> DeleteCategory(int id)
+        {
+            var category = await _categoryService.GetCategoryById(id);
+            if (category == null)
+                return NotFound("Category not found");
+            
+            var deletedCategory = await _categoryService.DeleteCategory(id);
+            return Ok(deletedCategory);
         }
     }
 }

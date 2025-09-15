@@ -3,9 +3,12 @@
     public interface ICategoryService
     {
         Task<List<Category>> GetAllCategories();
-        Task<Category> GetCategoryById(int id);
-        Task<Category> AddCategory(CategoryModel category, int storeId);
+        Task<CategoryModel> GetCategoryById(int id);
+        Task<CategoryModel> AddCategory(CategoryModel category, int storeId);
         Task<List<Category>> GetCategoriesByStore(int storeId);
+        Task<Category> UpdateCategory(int id, CategoryModel category);
+        Task<bool> DeleteCategory(int id);
+
 
     }
 }

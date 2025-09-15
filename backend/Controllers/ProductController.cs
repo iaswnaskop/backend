@@ -59,6 +59,7 @@ namespace backend.Controllers
 
             //}
             productDetail.ImageUrl = productDetail.ProductImage != null ? await _cloudinaryService.UploadProductPhoto(productDetail.ProductImage, storeAFM, productId) : null;
+
             var addedProductDetails = await _productService.AddProductDetails(productDetail, productId, storeId, categoryId);
 
             return Ok(addedProductDetails);
@@ -82,12 +83,41 @@ namespace backend.Controllers
             return Ok(updatedProduct);
         }
         [HttpPut("update-product-details/{id}")]
-        public async Task<ActionResult<ProductDetail>> UpdateProductDetails(int id, ProductDetailModel productDetail)
+        public async Task<ActionResult<ProductDetail>> UpdateProductDetails(int id, ProductDetailModel productDetail, int storeId)
         {
+            var store = await _storeService.GetStoreByStoreId(storeId);
+            if(store is null)
+                return NotFound("Store not found");
+            productDetail.ImageUrl = productDetail.ProductImage != null ? await _cloudinaryService.UploadProductPhoto(productDetail.ProductImage, store.AFM, id) : null;
             var updatedProductDetails = await _productService.UpdateProductDetails(id, productDetail);
             if (updatedProductDetails is null)
-                return NotFound("Sorryy");
+                return NotFound("Product Details Not Found");
+
             return Ok(updatedProductDetails);
+        }
+        [HttpDelete("delete-product/{id}")]
+        public async Task<ActionResult> DeleteProduct(int id)
+        {
+            var product = await _productService.GetProductById(id);
+            if (product is null)
+                return NotFound("Product not found");
+            
+            var result = await _productService.DeleteProduct(id);
+            if (!result)
+                return StatusCode(500, "An error occurred while deleting the product");
+            return NoContent();
+        }
+
+        [HttpDelete("delete-product-details/{id}")]
+        public async Task<ActionResult> DeleteProductDetails(int id)
+        {
+            var productDetails = await _productService.GetProductDetails(id);
+            if (productDetails is null)
+                return NotFound("Product Details not found");
+            var result = await _productService.DeleteProductDetails(id);
+            if (!result)
+                return StatusCode(500, "An error occurred while deleting the product details");
+            return NoContent();
         }
 
     }

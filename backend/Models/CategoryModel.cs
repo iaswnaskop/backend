@@ -20,8 +20,9 @@ public partial class CategoryModel
     public string? DescriptionIt { get; set; }
     public string?  NameEs { get; set; }
     public string? DescriptionEs { get; set; }
+    public int StoreId { get; set; }
 
-    public virtual ICollection<ProductDetailModel> ProductDetails { get; set; } = new List<ProductDetailModel>();
+    //public virtual ICollection<ProductDetailModel> ProductDetails { get; set; } = new List<ProductDetailModel>();
 
-    public virtual ICollection<StoreModel> Stores { get; set; } = new List<StoreModel>();
+    //public virtual ICollection<StoreModel> Stores { get; set; } = new List<StoreModel>();
 }

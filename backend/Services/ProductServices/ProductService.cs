@@ -208,8 +208,12 @@ namespace backend.Services.ProductServices
             {
                 existingProductDetail.ContainsNuts = productDetail.ContainsNuts;
             }
-           
-            
+            if (!string.Equals(existingProductDetail.ImageUrl, productDetail.ImageUrl, StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(productDetail.ImageUrl))
+            {
+                existingProductDetail.ImageUrl = productDetail.ImageUrl;
+            }
+
+
             if (existingProductDetail.SuggestedProducts != null)
             {
                     _context.SuggestProducts.RemoveRange(_context.SuggestProducts.Where(sp => sp.ProductDetailId == existingProductDetail.Id));
@@ -230,6 +234,26 @@ namespace backend.Services.ProductServices
             // Update other properties as needed
             await _context.SaveChangesAsync();
             return existingProductDetail;
+        }
+
+        public async Task<bool> DeleteProduct(int id)
+        {
+            var product = await _context.Products.FindAsync(id);
+            if (product == null)
+                return false;
+            _context.Products.Remove(product);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> DeleteProductDetails(int id)
+        {
+            var productDetails = await _context.ProductDetails.FindAsync(id);
+            if (productDetails == null)
+                return false;
+            _context.ProductDetails.Remove(productDetails);
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }

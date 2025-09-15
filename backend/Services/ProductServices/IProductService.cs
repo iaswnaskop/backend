@@ -9,5 +9,7 @@
         Task<ProductDetail> GetProductDetails(int id);
         Task<Product> UpdateProduct(int id, ProductModel product);
         Task<ProductDetail> UpdateProductDetails(int id, ProductDetailModel productDetail);
+        Task<bool> DeleteProduct(int id);
+        Task<bool> DeleteProductDetails(int id);
     }
 }
