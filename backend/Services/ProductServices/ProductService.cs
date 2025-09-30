@@ -45,7 +45,7 @@ namespace backend.Services.ProductServices
             return newProduct;
         }
 
-        public async Task<ProductDetail> AddProductDetails(ProductDetailModel productDetail, int productId, int storeId, int categoryId)
+        public async Task<ProductDetail> AddProductDetails(AddProductDetailModel productDetail, int productId, int storeId, int categoryId)
         {
             var newProductDetail = new ProductDetail
             {
@@ -77,7 +77,8 @@ namespace backend.Services.ProductServices
             };
             
             _context.ProductDetails.Add(newProductDetail);
-            foreach(var suggestedId in productDetail.SuggestedProduct)
+            await _context.SaveChangesAsync();
+            foreach (var suggestedId in productDetail.SuggestedProduct)
             {
                 var suggestProduct = new SuggestProduct
                 {
@@ -119,7 +120,7 @@ namespace backend.Services.ProductServices
             await _context.SaveChangesAsync();
             return existingProduct;
         }
-        public async Task<ProductDetail> UpdateProductDetails(int id, ProductDetailModel productDetail)
+        public async Task<ProductDetail> UpdateProductDetails(int id, AddProductDetailModel productDetail)
         {
             var existingProductDetail = await _context.ProductDetails.FindAsync(id);
             if (existingProductDetail == null)

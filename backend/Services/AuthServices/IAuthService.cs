@@ -4,7 +4,7 @@ namespace backend.Services.AuthServices
 {
     public interface IAuthService
     {
-        Task<User> RegisterAsync(UserRegisterModel request);
+        Task<User> RegisterAsync(WooOrderEvent request);
         Task<TokenResponseModel?> LoginAsync(UserLoginModel request);
         Task<TokenResponseModel?> RefreshTokensAsync(RefreshTokenRequestModel request);
         Task<UserDetailsModel?> GetUserAsync(ClaimsPrincipal user);

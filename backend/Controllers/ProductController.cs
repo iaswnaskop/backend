@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
+using System.Text.Json;
 
 namespace backend.Controllers
 {
@@ -16,12 +17,14 @@ namespace backend.Controllers
         private readonly IProductService _productService;
         private readonly IStoreService _storeService;
         private readonly ICloudinaryService _cloudinaryService;
+        private readonly ILogger<StoresController> _logger;
 
-        public ProductController(IProductService productService, IStoreService storeService, ICloudinaryService cloudinaryService)
+        public ProductController(IProductService productService, IStoreService storeService, ICloudinaryService cloudinaryService, ILogger<StoresController> logger)
         {
             _productService = productService;
             _storeService = storeService;
             _cloudinaryService = cloudinaryService;
+            _logger = logger;
         }
         [HttpGet("products")]
         public async Task<ActionResult<List<Product>>> GetAllProducts()
@@ -46,23 +49,69 @@ namespace backend.Controllers
         }
 
         [HttpPost("add-product-details")]
-        public async Task<ActionResult<ProductDetail>> AddProductDetails(ProductDetailModel productDetail, [FromHeader]int productId, [FromHeader] int storeId, [FromHeader] int categoryId)
+        [Consumes("multipart/form-data")]
+        public async Task<ActionResult<ProductDetailModel>> AddProductDetails(AddProductDeatilForm productDetail, [FromHeader]int productId, [FromHeader] int storeId, [FromHeader] int categoryId)
         {
+            try {
+                var model = JsonSerializer.Deserialize<AddProductDetailModel>(productDetail.JsonData);
+                var store = await _storeService.GetStoreByStoreId(storeId);
+                if (store is null)
+                    return NotFound("Store not found");
+                var storeAFM = store.AFM;
+                //if(productDetail.ProductImage != null)
+                //{
+                //    var productImage = await _cloudinaryService.UploadProductPhoto(productDetail.ProductImage, storeAFM, productId);
 
-            var store = await _storeService.GetStoreByStoreId(storeId);
-            if(store is null)
-                return NotFound("Store not found");
-            var storeAFM = store.AFM;
-            //if(productDetail.ProductImage != null)
-            //{
-            //    var productImage = await _cloudinaryService.UploadProductPhoto(productDetail.ProductImage, storeAFM, productId);
+                //}
+                model.ImageUrl = productDetail.ProductImage != null ? await _cloudinaryService.UploadProductPhoto(productDetail.ProductImage, storeAFM, productId) : null;
 
-            //}
-            productDetail.ImageUrl = productDetail.ProductImage != null ? await _cloudinaryService.UploadProductPhoto(productDetail.ProductImage, storeAFM, productId) : null;
+                var addedProductDetails = await _productService.AddProductDetails(model, productId, storeId, categoryId);
 
-            var addedProductDetails = await _productService.AddProductDetails(productDetail, productId, storeId, categoryId);
+                var response = new ProductDetailModel
+                {
+                    Id = addedProductDetails.Id,
+                    Name = addedProductDetails.Name,
+                    Description = addedProductDetails.Description,
+                    Price = addedProductDetails.Price,
+                    NameEng = addedProductDetails.NameEng,
+                    DescriptionEng = addedProductDetails.DescriptionEng,
+                    NameDu = addedProductDetails.NameDu,
+                    DescriptionDu = addedProductDetails.DescriptionDu,
+                    NameFr = addedProductDetails.NameFr,
+                    DescriptionFr = addedProductDetails.DescriptionFr,
+                    NameIt = addedProductDetails.NameIt,
+                    DescriptionIt = addedProductDetails.DescriptionIt,
+                    NameEs = addedProductDetails.NameEs,
+                    DescriptionEs = addedProductDetails.DescriptionEs,
+                    Available = addedProductDetails.Available,
+                    StoreId = addedProductDetails.StoreId,
+                    ProductId = addedProductDetails.ProductId,
+                    CategoryId = addedProductDetails.CategoryId,
+                    IsHidden = addedProductDetails.IsHidden,
+                    IsVegan = addedProductDetails.IsVegan,
+                    GlutenFree = addedProductDetails.GlutenFree,
+                    IsKosher = addedProductDetails.IsKosher,
+                    IsSpicy = addedProductDetails.IsSpicy,
+                    ContainsNuts = addedProductDetails.ContainsNuts,
+                    SuggestedProduct = addedProductDetails.SuggestedProducts != null ? new List<int> { addedProductDetails.SuggestedProducts.SuggestedProductDetailId } : new List<int>(),
+                    ImageUrl = addedProductDetails.ImageUrl
 
-            return Ok(addedProductDetails);
+                };
+
+                return Ok(response);
+            }
+            catch (JsonException ex)
+            {
+                _logger.LogError(ex, "JSON parsing error while Add Product Details with ProductId {ProductId}", productId);
+                return BadRequest(new { error = "JSON parse error", details = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error while Add Product Details with ProductId {ProductId}", productId);
+                return StatusCode(500, new { error = "Internal Server Error", details = ex.Message });
+            }
+
+            
         }
 
         [HttpGet("product-details/{id}")]
@@ -83,17 +132,61 @@ namespace backend.Controllers
             return Ok(updatedProduct);
         }
         [HttpPut("update-product-details/{id}")]
-        public async Task<ActionResult<ProductDetail>> UpdateProductDetails(int id, ProductDetailModel productDetail, int storeId)
+        [Consumes("multipart/form-data")]
+        public async Task<ActionResult<ProductDetailModel>> UpdateProductDetails(int id, AddProductDeatilForm productDetail, [FromHeader]int storeId)
         {
-            var store = await _storeService.GetStoreByStoreId(storeId);
-            if(store is null)
-                return NotFound("Store not found");
-            productDetail.ImageUrl = productDetail.ProductImage != null ? await _cloudinaryService.UploadProductPhoto(productDetail.ProductImage, store.AFM, id) : null;
-            var updatedProductDetails = await _productService.UpdateProductDetails(id, productDetail);
-            if (updatedProductDetails is null)
-                return NotFound("Product Details Not Found");
+            try {
+                var model = JsonSerializer.Deserialize<AddProductDetailModel>(productDetail.JsonData);
+                var store = await _storeService.GetStoreByStoreId(storeId);
+                if (store is null)
+                    return NotFound("Store not found");
+                model.ImageUrl = productDetail.ProductImage != null ? await _cloudinaryService.UploadProductPhoto(productDetail.ProductImage, store.AFM, id) : null;
+                var updatedProductDetails = await _productService.UpdateProductDetails(id, model);
+                if (updatedProductDetails is null)
+                    return NotFound("Product Details Not Found");
+                var response = new ProductDetailModel
+                {
+                    Id = updatedProductDetails.Id,
+                    Name = updatedProductDetails.Name,
+                    Description = updatedProductDetails.Description,
+                    Price = updatedProductDetails.Price,
+                    NameEng = updatedProductDetails.NameEng,
+                    DescriptionEng = updatedProductDetails.DescriptionEng,
+                    NameDu = updatedProductDetails.NameDu,
+                    DescriptionDu = updatedProductDetails.DescriptionDu,
+                    NameFr = updatedProductDetails.NameFr,
+                    DescriptionFr = updatedProductDetails.DescriptionFr,
+                    NameIt = updatedProductDetails.NameIt,
+                    DescriptionIt = updatedProductDetails.DescriptionIt,
+                    NameEs = updatedProductDetails.NameEs,
+                    DescriptionEs = updatedProductDetails.DescriptionEs,
+                    Available = updatedProductDetails.Available,
+                    StoreId = updatedProductDetails.StoreId,
+                    ProductId = updatedProductDetails.ProductId,
+                    CategoryId = updatedProductDetails.CategoryId,
+                    IsHidden = updatedProductDetails.IsHidden,
+                    IsVegan = updatedProductDetails.IsVegan,
+                    GlutenFree = updatedProductDetails.GlutenFree,
+                    IsKosher = updatedProductDetails.IsKosher,
+                    IsSpicy = updatedProductDetails.IsSpicy,
+                    ContainsNuts = updatedProductDetails.ContainsNuts,
+                    SuggestedProduct = updatedProductDetails.SuggestedProducts != null ? new List<int> { updatedProductDetails.SuggestedProducts.SuggestedProductDetailId } : new List<int>(),
+                    ImageUrl = updatedProductDetails.ImageUrl
+                };
 
-            return Ok(updatedProductDetails);
+                return Ok(response);
+            }
+            catch (JsonException ex)
+            {
+                _logger.LogError(ex, "JSON parsing error while Update Product Details with ProductDetailId {ProductDetailId}", id);
+                return BadRequest(new { error = "JSON parse error", details = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error while Update Product Details with ProductDetailId {ProductDetailId}", id);
+                return StatusCode(500, new { error = "Internal Server Error", details = ex.Message });
+            }
+            
         }
         [HttpDelete("delete-product/{id}")]
         public async Task<ActionResult> DeleteProduct(int id)

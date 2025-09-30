@@ -18,7 +18,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Text.Json.Serialization;
-using backend.Filters; // Add this using directive
+using backend.Filters;
+using Serilog;
+using Serilog.Events; // Add this using directive
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,7 +29,25 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-}); 
+});
+
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Error() // μόνο Error και πιο πάνω (Fatal) θα γραφτούν
+    .Enrich.FromLogContext()
+    .Enrich.WithProperty("Application", "MyApp")
+    .WriteTo.Console(restrictedToMinimumLevel: LogEventLevel.Error) // μόνο για κονσόλα
+    .WriteTo.MSSqlServer(
+        connectionString: builder.Configuration.GetConnectionString("DefaultConnection"),
+        sinkOptions: new Serilog.Sinks.MSSqlServer.MSSqlServerSinkOptions
+        {
+            TableName = "Logs",
+            AutoCreateSqlTable = true
+        },
+        restrictedToMinimumLevel: LogEventLevel.Error // ΜΟΝΟ errors στη βάση
+    )
+    .CreateLogger();
+
+builder.Host.UseSerilog();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -63,16 +83,33 @@ builder.Services.AddCors(options =>
     //        .AllowAnyHeader()
     //        .AllowAnyMethod();
     //});
-    options.AddPolicy("AllowFrontend", policy =>
-    {
-        policy
-            .WithOrigins("https://proud-field-0d0b23f03-preview.westeurope.6.azurestaticapps.net",
-            "http://localhost:5173"
-            )
-            .AllowAnyHeader()
-            .AllowAnyMethod();
-    });
+    //options.AddPolicy("AllowFrontend", policy =>
+    //{
+    //    policy
+    //        .WithOrigins("https://proud-field-0d0b23f03-preview.westeurope.6.azurestaticapps.net",
+    //        "http://localhost:5173"
+    //        )
+    //        .AllowAnyHeader()
+    //        .AllowAnyMethod();
+    //});
 
+    options.AddPolicy("AllowAll",
+       b => b.AllowAnyOrigin()
+             .AllowAnyMethod()
+             .AllowAnyHeader());
+
+});
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    // HTTP
+    options.ListenAnyIP(5172);
+
+    // HTTPS
+    options.ListenAnyIP(7176, listenOptions =>
+    {
+        listenOptions.UseHttps(); // μόνο αν έχεις dev cert
+    });
 });
 builder.Services.Configure<CloudinarySettings>(
     builder.Configuration.GetSection("CloudinarySettings"));
@@ -112,9 +149,21 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 
 }
+app.Use(async (context, next) =>
+{
+    var endpoint = context.GetEndpoint();
+    var controller = endpoint?.Metadata.GetMetadata<Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor>()?.ControllerName;
+    var action = endpoint?.Metadata.GetMetadata<Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor>()?.ActionName;
+
+    using (Serilog.Context.LogContext.PushProperty("Controller", controller))
+    using (Serilog.Context.LogContext.PushProperty("Action", action))
+    {
+        await next();
+    }
+});
 
 
-app.UseCors("AllowFrontend");
+app.UseCors("AllowAll");
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();

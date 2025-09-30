@@ -12,17 +12,21 @@ namespace backend.Controllers
     {
         //[Authorize(Roles = "Admin")]
         [HttpPost("register")]
-        public async Task<ActionResult<UserRegisterModel>> Register(UserRegisterModel request)
+        public async Task<ActionResult<WooOrderEvent>> Register(WooOrderEvent request)
         {
+            if (request == null)
+                return BadRequest("Json is null");
+
+
             var user = await authService.RegisterAsync(request);
             if (user is null)
                 return BadRequest("Username already exists.");
 
-            var response = new UserRegisterModel
+            var response = new Customer
             {
-                
-                Username = user.Username,
-                Email = user.Email
+                Email = user.Email,
+                Username = user.Username
+
             };
 
             return Ok(response);

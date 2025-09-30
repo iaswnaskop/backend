@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using backend.Services.AuthServices;
+using System.Text.Json;
 
 namespace backend.Controllers
 {
@@ -16,11 +17,13 @@ namespace backend.Controllers
         private readonly IStoreService _storeService;
         private readonly ICloudinaryService _cloudinaryService;
         private readonly IAuthService _authService;
-        public StoresController(IStoreService storeService, ICloudinaryService cloudinaryService, IAuthService authService)
+        private readonly ILogger<StoresController> _logger;
+        public StoresController(IStoreService storeService, ICloudinaryService cloudinaryService, IAuthService authService, ILogger<StoresController> logger)
         {
             _storeService = storeService;
             _cloudinaryService = cloudinaryService;
             _authService = authService;
+            _logger = logger;
         }
 
 
@@ -193,64 +196,74 @@ namespace backend.Controllers
             return Ok(addedStore);
         }
 
-        
+
         [HttpPut("update-store/{id}")]
         [Consumes("multipart/form-data")]
-        public async Task<ActionResult<UpdateStoreModel>> UpdateStore(int id, [FromForm] UpdateStoreModel request)
+        public async Task<ActionResult<UpdateStoreModel>> UpdateStore(int id, [FromForm] UpdateStoreForm request)
         {
-            var image = request.Logo;
-            var logoURL = string.Empty;
-
-            if (image != null)
+            try
             {
-                 logoURL = await _cloudinaryService.UpdatePhoto(image, request.AFM);
-            }
-            request.ImageURL = logoURL;
+                var model = JsonSerializer.Deserialize<UpdateStoreModel>(request.JsonData);
 
-            var store = await _storeService.UpdateStore(id, request);
-            if (store is null)
-                return NotFound("Sorryy");
+                if (model == null)
+                    return BadRequest("Invalid JSON data");
 
-
-            
-
-            var result = new UpdateStoreModel
-            {
-                //Id = store.Id,
-                Description = store.Description,
-                Name = store.Name,
-                Address = store.Address,
-                AFM = store.AFM,
-                Phone = store.Phone,
-                ImageURL = store.ImageURL,
-                Email = store.Email,
-                Facebook = store.Facebook,
-                Instagram = store.Instagram,
-                TikTok = store.TikTok,
-                TripAdvisor = store.TripAdvisor,
-                GoogleBusiness = store.GoogleBusiness,
-                PurchasingManager = store.PurchasingManager,
-                WifiName = store.WifiName,
-                WifiPassword = store.WifiPassword,
-                StorePhone = store.StorePhone,
-                QRCodeURL = store.QRCodeURL,
-                ScheduleModel = store.Schedules.Select(s => new ScheduleModel
+                if (request.Logo != null)
                 {
-                    DayOfWeek = (int)s.DayOfWeek,
-                    OpeningTime = s.OpeningTime.ToString(@"hh\:mm"),
-                    ClosingTime = s.ClosingTime.ToString(@"hh\:mm"),
-                    IsClosed = s.IsClosed
-                }).ToList(), 
-                Cash = store.Cash,
-                Card = store.Card,
-                PayPal = store.PayPal,
-                BitCoin = store.BitCoin,
-                IRIS = store.IRIS,
-                IsActive = store.IsActive,
-                Languages = store.StoreLanguages.Select(sl => sl.LanguageId).ToList()
-            };
+                    model.ImageURL = await _cloudinaryService.UpdatePhoto(request.Logo, model.AFM);
+                }
 
-            return Ok(result);
+                var store = await _storeService.UpdateStore(id, model);
+                if (store is null)
+                    return NotFound("Store not found");
+
+                var result = new UpdateStoreModel
+                {
+                    Description = store.Description,
+                    Name = store.Name,
+                    Address = store.Address,
+                    AFM = store.AFM,
+                    Phone = store.Phone,
+                    ImageURL = store.ImageURL,
+                    Email = store.Email,
+                    Facebook = store.Facebook,
+                    Instagram = store.Instagram,
+                    TikTok = store.TikTok,
+                    TripAdvisor = store.TripAdvisor,
+                    GoogleBusiness = store.GoogleBusiness,
+                    PurchasingManager = store.PurchasingManager,
+                    WifiName = store.WifiName,
+                    WifiPassword = store.WifiPassword,
+                    StorePhone = store.StorePhone,
+                    QRCodeURL = store.QRCodeURL,
+                    ScheduleModel = store.Schedules.Select(s => new ScheduleModel
+                    {
+                        DayOfWeek = (int)s.DayOfWeek,
+                        OpeningTime = s.OpeningTime.ToString(@"hh\:mm"),
+                        ClosingTime = s.ClosingTime.ToString(@"hh\:mm"),
+                        IsClosed = s.IsClosed
+                    }).ToList(),
+                    Cash = store.Cash,
+                    Card = store.Card,
+                    PayPal = store.PayPal,
+                    BitCoin = store.BitCoin,
+                    IRIS = store.IRIS,
+                    IsActive = store.IsActive,
+                    Languages = store.StoreLanguages.Select(sl => sl.LanguageId).ToList()
+                };
+
+                return Ok(result);
+            }
+            catch (JsonException ex)
+            {
+                _logger.LogError(ex, "JSON parsing error while updating store {StoreId}", id);
+                return BadRequest(new { error = "JSON parse error", details = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error while updating store {StoreId}", id);
+                return StatusCode(500, new { error = "Internal Server Error", details = ex.Message });
+            }
         }
         //[HttpPut("update-store-photos")]
         //public async Task<ActionResult<Store>> UpdateStorePhotos([FromForm] UpdateStorePhotos store, [FromForm] Guid userId)

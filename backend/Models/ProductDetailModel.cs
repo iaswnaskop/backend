@@ -31,7 +31,7 @@ public partial class ProductDetailModel
     public double Price { get; set; }
 
     public bool Available { get; set; }
-    public int? CategoryId { get; set; }
+    
     public bool IsHidden { get; set; } = false;
     public bool IsVegan { get; set; } = false;
     public bool GlutenFree { get; set; } = false;
@@ -39,6 +39,9 @@ public partial class ProductDetailModel
     public bool IsGluten { get; set; } = false;
     public bool IsSpicy { get; set; } = false;
     public bool ContainsNuts { get; set; } = false;
-    public IFormFile? ProductImage { get; set; }
+    public int? CategoryId { get; set; }
+    public int StoreId { get; set; }
+    public int ProductId { get; set; }
+    //public IFormFile? ProductImage { get; set; }
     public List<int> SuggestedProduct { get; set; } = new List<int>();
 }

@@ -11,22 +11,22 @@ namespace backend.Services.AuthServices
 {
     public class AuthService(DataContext context, IConfiguration configuration) : IAuthService
     {
-        public async Task<User> RegisterAsync(UserRegisterModel request)
+        public async Task<User> RegisterAsync(WooOrderEvent request)
         {
-            if (await context.Users.AnyAsync(u => u.Username == request.Username))
+            if (await context.Users.AnyAsync(u => u.Email == request.Customer.Email))
             {
                 return null;
             }
 
             var user = new User();
-            var hashedPassword = new PasswordHasher<User>()
-                .HashPassword(user, request.Password);
+            //var hashedPassword = new PasswordHasher<User>()
+            //    .HashPassword(user, request.Customer.);
 
-            user.Username = request.Username;
-            user.PasswordHash = hashedPassword;
-            user.Email = request.Email;
-            user.FullName = request.FullName;
-            user.Role = request.Role;
+            user.Username = request.Customer.Username;
+            user.PasswordHash = "123456";
+            user.Email = request.Customer.Email;
+            user.FullName = request.Customer.FirstName;
+            user.Role = "Wp";
             
 
             context.Users.Add(user);
