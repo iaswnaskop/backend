@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using backend.Data;
 
@@ -11,9 +12,11 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20251003142157_CreatePermissionsandRoles")]
+    partial class CreatePermissionsandRoles
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -200,13 +203,13 @@ namespace backend.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("MaxLanguages")
+                    b.Property<int?>("MaxLanguages")
                         .HasColumnType("int");
 
-                    b.Property<int>("MaxLayouts")
+                    b.Property<int?>("MaxLayouts")
                         .HasColumnType("int");
 
-                    b.Property<int>("MaxStores")
+                    b.Property<int?>("MaxStores")
                         .HasColumnType("int");
 
                     b.Property<string>("Name")
@@ -225,9 +228,6 @@ namespace backend.Migrations
                         {
                             Id = 1,
                             Code = "ST24558",
-                            MaxLanguages = 0,
-                            MaxLayouts = 0,
-                            MaxStores = 0,
                             Name = "Starter",
                             Price = 9.99m
                         },
@@ -235,9 +235,6 @@ namespace backend.Migrations
                         {
                             Id = 2,
                             Code = "BA24556",
-                            MaxLanguages = 0,
-                            MaxLayouts = 0,
-                            MaxStores = 0,
                             Name = "Basic",
                             Price = 19.99m
                         },
@@ -245,9 +242,6 @@ namespace backend.Migrations
                         {
                             Id = 3,
                             Code = "PR24557",
-                            MaxLanguages = 0,
-                            MaxLayouts = 0,
-                            MaxStores = 0,
                             Name = "Premium",
                             Price = 29.99m
                         });
@@ -623,9 +617,7 @@ namespace backend.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SuggestedProductDetailId");
-
-                    b.HasIndex("ProductDetailId", "SuggestedProductDetailId")
+                    b.HasIndex("ProductDetailId")
                         .IsUnique();
 
                     b.ToTable("SuggestProducts");
@@ -881,20 +873,12 @@ namespace backend.Migrations
             modelBuilder.Entity("backend.Entities.SuggestProduct", b =>
                 {
                     b.HasOne("backend.Entities.ProductDetail", "ProductDetail")
-                        .WithMany("SuggestedProducts")
-                        .HasForeignKey("ProductDetailId")
+                        .WithOne("SuggestedProducts")
+                        .HasForeignKey("backend.Entities.SuggestProduct", "ProductDetailId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("backend.Entities.ProductDetail", "SuggestedProductDetail")
-                        .WithMany()
-                        .HasForeignKey("SuggestedProductDetailId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.Navigation("ProductDetail");
-
-                    b.Navigation("SuggestedProductDetail");
                 });
 
             modelBuilder.Entity("backend.Entities.User", b =>
@@ -945,7 +929,8 @@ namespace backend.Migrations
 
             modelBuilder.Entity("backend.Entities.ProductDetail", b =>
                 {
-                    b.Navigation("SuggestedProducts");
+                    b.Navigation("SuggestedProducts")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("backend.Entities.Role", b =>

@@ -47,50 +47,72 @@ namespace backend.Services.ProductServices
 
         public async Task<ProductDetail> AddProductDetails(AddProductDetailModel productDetail, int productId, int storeId, int categoryId)
         {
-            var newProductDetail = new ProductDetail
-            {
-                ProductId = productId,
-                Description = productDetail.Description,
-                DescriptionEng = productDetail.DescriptionEng,
-                DescriptionDu = productDetail.DescriptionDu,
-                DescriptionFr = productDetail.DescriptionFr,
-                DescriptionIt = productDetail.DescriptionIt,
-                DescriptionEs = productDetail.DescriptionEs,
-                Price = productDetail.Price,
-                Name = productDetail.Name,
-                NameEng = productDetail.NameEng,
-                NameDu = productDetail.NameDu,
-                NameFr = productDetail.NameFr,
-                NameIt = productDetail.NameIt,
-                NameEs = productDetail.NameEs,
-                IsHidden = productDetail.IsHidden,
-                IsVegan = productDetail.IsVegan,
-                GlutenFree = productDetail.GlutenFree,
-                IsKosher = productDetail.IsKosher,
-                IsSpicy = productDetail.IsSpicy,
-                ContainsNuts = productDetail.ContainsNuts,
-                Available = true,
-                StoreId = storeId,
-                CategoryId = categoryId,
-                ImageUrl = productDetail.ImageUrl
+            // Ξεκινάμε transaction
+            using var transaction = await _context.Database.BeginTransactionAsync();
 
-            };
-            
-            _context.ProductDetails.Add(newProductDetail);
-            await _context.SaveChangesAsync();
-            foreach (var suggestedId in productDetail.SuggestedProduct)
+            try
             {
-                var suggestProduct = new SuggestProduct
+                var newProductDetail = new ProductDetail
                 {
-                    ProductDetailId = newProductDetail.Id,
-                    SuggestedProductDetailId = suggestedId,
-                    
+                    ProductId = productId,
+                    Description = productDetail.Description,
+                    DescriptionEng = productDetail.DescriptionEng,
+                    DescriptionDu = productDetail.DescriptionDu,
+                    DescriptionFr = productDetail.DescriptionFr,
+                    DescriptionIt = productDetail.DescriptionIt,
+                    DescriptionEs = productDetail.DescriptionEs,
+                    Price = productDetail.Price,
+                    Name = productDetail.Name,
+                    NameEng = productDetail.NameEng,
+                    NameDu = productDetail.NameDu,
+                    NameFr = productDetail.NameFr,
+                    NameIt = productDetail.NameIt,
+                    NameEs = productDetail.NameEs,
+                    IsHidden = productDetail.IsHidden,
+                    IsVegan = productDetail.IsVegan,
+                    GlutenFree = productDetail.GlutenFree,
+                    IsKosher = productDetail.IsKosher,
+                    IsSpicy = productDetail.IsSpicy,
+                    ContainsNuts = productDetail.ContainsNuts,
+                    Available = true,
+                    StoreId = storeId,
+                    CategoryId = categoryId,
+                    ImageUrl = productDetail.ImageUrl
                 };
-                _context.SuggestProducts.Add(suggestProduct);
+
+                // Αποθήκευση προϊόντος
+                _context.ProductDetails.Add(newProductDetail);
+                await _context.SaveChangesAsync();
+
+                // Προσθήκη suggested products
+                if (productDetail.SuggestedProduct != null && productDetail.SuggestedProduct.Any())
+                {
+                    foreach (var suggestedId in productDetail.SuggestedProduct)
+                    {
+                        var suggestProduct = new SuggestProduct
+                        {
+                            ProductDetailId = newProductDetail.Id,
+                            SuggestedProductDetailId = suggestedId
+                        };
+                        _context.SuggestProducts.Add(suggestProduct);
+                    }
+
+                    await _context.SaveChangesAsync();
+                }
+
+                // Επιβεβαίωση όλων
+                await transaction.CommitAsync();
+
+                return newProductDetail;
             }
-            await _context.SaveChangesAsync();
-            return newProductDetail;
+            catch (Exception ex)
+            {
+                // Αν γίνει λάθος, τα γυρίζουμε όλα πίσω
+                await transaction.RollbackAsync();
+                throw new Exception("Σφάλμα κατά την αποθήκευση του προϊόντος", ex);
+            }
         }
+
         public async Task<ProductDetail> GetProductDetails(int id)
         {
             var productDetails = await _context.ProductDetails.FindAsync(id);

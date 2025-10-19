@@ -1,26 +1,28 @@
-﻿global using backend.Models;
-global using backend.Entities;
-
+﻿global using backend.Entities;
+global using backend.Models;
 using backend.Data;
+using backend.Filters;
 using backend.Services;
-using backend.Services.StoreServices;
 using backend.Services.AuthServices;
-using backend.Services.ProductServices;
 using backend.Services.CategoryServices;
 using backend.Services.CloudinaryServices;
+using backend.Services.EmailServices;
+using backend.Services.ProductServices;
 using backend.Services.QrCodeServices;
+using backend.Services.StoreServices;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization; // Add this using directive
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Models;
-using Swashbuckle.AspNetCore.Filters;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using Serilog;
+using Serilog.Events;
+using Serilog.Sinks.SystemConsole.Themes;
+using Swashbuckle.AspNetCore.Filters;
 using System.Text;
 using System.Text.Json.Serialization;
-using backend.Filters;
-using Serilog;
-using Serilog.Events; // Add this using directive
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,11 +33,20 @@ builder.Services.AddControllers().AddJsonOptions(options =>
     options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
 });
 
+builder.Services.Configure<SmtSettings>(
+    builder.Configuration.GetSection("SmtpSettings"));
+
 Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Error() // μόνο Error και πιο πάνω (Fatal) θα γραφτούν
+    .MinimumLevel.Information() // όλα τα logs Information+ και πάνω
     .Enrich.FromLogContext()
     .Enrich.WithProperty("Application", "MyApp")
-    .WriteTo.Console(restrictedToMinimumLevel: LogEventLevel.Error) // μόνο για κονσόλα
+    // Όλα τα logs στην κονσόλα με χρώματα
+    .WriteTo.Console(
+        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Application} {Message:lj}{NewLine}{Exception}",
+        theme: AnsiConsoleTheme.Code,
+        restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Information
+    )
+    // Μόνο Errors στη βάση
     .WriteTo.MSSqlServer(
         connectionString: builder.Configuration.GetConnectionString("DefaultConnection"),
         sinkOptions: new Serilog.Sinks.MSSqlServer.MSSqlServerSinkOptions
@@ -43,7 +54,7 @@ Log.Logger = new LoggerConfiguration()
             TableName = "Logs",
             AutoCreateSqlTable = true
         },
-        restrictedToMinimumLevel: LogEventLevel.Error // ΜΟΝΟ errors στη βάση
+        restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Error
     )
     .CreateLogger();
 
@@ -138,6 +149,10 @@ builder.Services.AddScoped<IStoreService, StoreService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IQrCodeService, QrCodeService>();
+builder.Services.AddSingleton<IAuthorizationHandler, FeatureHandler>();
+builder.Services.AddSingleton<IAuthorizationPolicyProvider, DynamicPolicyProvider>();
+builder.Services.AddTransient<IEmailService, EmailService>();
+
 
 
 var app = builder.Build();

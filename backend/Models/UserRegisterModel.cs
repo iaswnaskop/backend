@@ -25,11 +25,15 @@ namespace backend.Models
 
     public class Customer
     {
-        public int WpUserId { get; set; }
+        public int? WpUserId { get; set; }
         public string Email { get; set; } = string.Empty;
         public string Username { get; set; } = string.Empty;
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
+        public int Role { get; set; }
+        public string Token { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+
     }
 
     public class Payment
@@ -49,5 +53,7 @@ namespace backend.Models
     {
         public string Site { get; set; } = string.Empty;
     }
+
+    
 
 }

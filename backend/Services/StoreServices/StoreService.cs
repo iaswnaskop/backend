@@ -110,6 +110,7 @@ namespace backend.Services.StoreServices
             var store = await _context.Stores
                 .Include(s => s.Users)
                 .Include(s => s.ProductDetails)
+                    .ThenInclude(s => s.SuggestedProducts)
                 .Include(s => s.Categories)
                 .Include(s => s.StoreTypes)
                     .ThenInclude(st => st.Type)
@@ -118,18 +119,17 @@ namespace backend.Services.StoreServices
                 .Include(s => s.Schedules)
                 .FirstOrDefaultAsync(s => s.Id == id && s.Users.Any(u => u.Id == userId));
 
-            var design = await _context.Design.Where(d => d.Id == store.DesignId)
+            store.Design = await _context.Design.Where(d => d.Id == store.DesignId)
                 .Include(d => d.DesignModel)
                 .ToListAsync();
+
             
-
-            store.Design = design;
             
+                
 
-
-
-            if (store is null)
+            if (store == null)
                 return null;
+
             return store;
         }
 

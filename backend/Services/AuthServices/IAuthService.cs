@@ -9,6 +9,8 @@ namespace backend.Services.AuthServices
         Task<TokenResponseModel?> RefreshTokensAsync(RefreshTokenRequestModel request);
         Task<UserDetailsModel?> GetUserAsync(ClaimsPrincipal user);
         Task<UserDetailsModel?> UpdateUserDetailsAsync(UserDetailsModel request);
+        Task<(User user, string link)?> RegisterAdminAsync(WooOrderEvent request);
 
+        Task<bool> SetPasswordAsync(WooOrderEvent request);
     }
 }

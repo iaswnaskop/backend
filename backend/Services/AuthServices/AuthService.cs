@@ -26,13 +26,54 @@ namespace backend.Services.AuthServices
             user.PasswordHash = "123456";
             user.Email = request.Customer.Email;
             user.FullName = request.Customer.FirstName;
-            user.Role = "Wp";
+            
             
 
             context.Users.Add(user);
             await context.SaveChangesAsync();
 
             return user;
+        }
+
+        public async Task<(User user, string link)?> RegisterAdminAsync(WooOrderEvent request)
+        {
+            if (await context.Users.AnyAsync(u => u.Email == request.Customer.Email))
+            {
+                return null;
+            }
+            var user = new User();
+            //var hashedpassword = new PasswordHasher<User>()
+            //    .HashPassword(user, request.Customer.Username);
+
+            user.Username = request.Customer.Username;
+            user.PasswordSetupToken = Guid.NewGuid().ToString();
+            user.TokenExpiresAt = DateTime.UtcNow.AddDays(1);
+            user.Email = request.Customer.Email;
+            user.FullName = request.Customer.FirstName;
+            user.RoleId = request.Customer.Role;
+
+            context.Users.Add(user);
+            await context.SaveChangesAsync();
+
+            var link = $"{configuration.GetValue<string>("AppSettings:FrontendUrl")}/set-password?token={user.PasswordSetupToken}";
+
+
+            return (user, link);
+        }
+
+        public async Task<bool> SetPasswordAsync(WooOrderEvent request)
+        {
+            var user = await context.Users
+                .FirstOrDefaultAsync(u => u.PasswordSetupToken == request.Customer.Token 
+                    && u.TokenExpiresAt > DateTime.UtcNow);
+            if (user is null)
+                return false;
+            user.PasswordHash = new PasswordHasher<User>()
+                .HashPassword(user, request.Customer.Password);
+            user.PasswordSetupToken = null;
+            user.TokenExpiresAt = null;
+            await context.SaveChangesAsync();
+            return true;
         }
 
         public async Task<TokenResponseModel?> LoginAsync(UserLoginModel request)
@@ -107,8 +148,28 @@ namespace backend.Services.AuthServices
             {
                 new Claim(ClaimTypes.Name, user.Username),
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Role, user.Role)
+                new Claim(ClaimTypes.Role, user.Role?.Name ?? string.Empty)
             };
+            // προσθέτεις permissions από Role
+            //foreach (var rp in user.Role.RolePermissions)
+            //{
+            //    claims.Add(new Claim("Permission", rp.Permission.Name));
+            //}
+            //// προσθέτεις permissions από Package (αν έχει)
+            //if (user.Package != null)
+            //{
+            //    foreach (var pp in user.Package.PackagePermissions)
+            //    {
+            //        claims.Add(new Claim("Permission", pp.Permission.Name));
+            //    }
+            //}
+
+            //if (user.Package != null)
+            //{
+            //    claims.Add(new Claim("MaxLanguages", user.Package.MaxLanguages.ToString()));
+            //    claims.Add(new Claim("MaxLayouts", user.Package.MaxLayouts.ToString()));
+            //    claims.Add(new Claim("MaxStores", user.Package.MaxStores.ToString()));
+            //}
 
             var key = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(configuration.GetValue<string>("AppSettings:Token")!));

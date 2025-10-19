@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using backend.Data;
 
@@ -11,9 +12,11 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20251003132115_CreatePackageTable")]
+    partial class CreatePackageTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -173,21 +176,6 @@ namespace backend.Migrations
                     b.ToTable("Languages");
                 });
 
-            modelBuilder.Entity("backend.Entities.PackagePermission", b =>
-                {
-                    b.Property<int>("PackageId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PermissionId")
-                        .HasColumnType("int");
-
-                    b.HasKey("PackageId", "PermissionId");
-
-                    b.HasIndex("PermissionId");
-
-                    b.ToTable("PackagePermissions");
-                });
-
             modelBuilder.Entity("backend.Entities.Packages", b =>
                 {
                     b.Property<int>("Id")
@@ -199,15 +187,6 @@ namespace backend.Migrations
                     b.Property<string>("Code")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("MaxLanguages")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MaxLayouts")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MaxStores")
-                        .HasColumnType("int");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -225,9 +204,6 @@ namespace backend.Migrations
                         {
                             Id = 1,
                             Code = "ST24558",
-                            MaxLanguages = 0,
-                            MaxLayouts = 0,
-                            MaxStores = 0,
                             Name = "Starter",
                             Price = 9.99m
                         },
@@ -235,9 +211,6 @@ namespace backend.Migrations
                         {
                             Id = 2,
                             Code = "BA24556",
-                            MaxLanguages = 0,
-                            MaxLayouts = 0,
-                            MaxStores = 0,
                             Name = "Basic",
                             Price = 19.99m
                         },
@@ -245,9 +218,6 @@ namespace backend.Migrations
                         {
                             Id = 3,
                             Code = "PR24557",
-                            MaxLanguages = 0,
-                            MaxLayouts = 0,
-                            MaxStores = 0,
                             Name = "Premium",
                             Price = 29.99m
                         });
@@ -623,9 +593,7 @@ namespace backend.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SuggestedProductDetailId");
-
-                    b.HasIndex("ProductDetailId", "SuggestedProductDetailId")
+                    b.HasIndex("ProductDetailId")
                         .IsUnique();
 
                     b.ToTable("SuggestProducts");
@@ -691,8 +659,9 @@ namespace backend.Migrations
                     b.Property<DateTime?>("RefreshTokenExpiryTime")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("RoleId")
-                        .HasColumnType("int");
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -704,8 +673,6 @@ namespace backend.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("PackageId");
-
-                    b.HasIndex("RoleId");
 
                     b.ToTable("Users");
                 });
@@ -753,25 +720,6 @@ namespace backend.Migrations
                         .HasForeignKey("StoreId");
 
                     b.Navigation("DesignModel");
-                });
-
-            modelBuilder.Entity("backend.Entities.PackagePermission", b =>
-                {
-                    b.HasOne("backend.Entities.Packages", "Package")
-                        .WithMany("PackagePermissions")
-                        .HasForeignKey("PackageId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("backend.Entities.Permission", "Permission")
-                        .WithMany("PackagePermissions")
-                        .HasForeignKey("PermissionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Package");
-
-                    b.Navigation("Permission");
                 });
 
             modelBuilder.Entity("backend.Entities.ProductDetail", b =>
@@ -881,37 +829,23 @@ namespace backend.Migrations
             modelBuilder.Entity("backend.Entities.SuggestProduct", b =>
                 {
                     b.HasOne("backend.Entities.ProductDetail", "ProductDetail")
-                        .WithMany("SuggestedProducts")
-                        .HasForeignKey("ProductDetailId")
+                        .WithOne("SuggestedProducts")
+                        .HasForeignKey("backend.Entities.SuggestProduct", "ProductDetailId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("backend.Entities.ProductDetail", "SuggestedProductDetail")
-                        .WithMany()
-                        .HasForeignKey("SuggestedProductDetailId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.Navigation("ProductDetail");
-
-                    b.Navigation("SuggestedProductDetail");
                 });
 
             modelBuilder.Entity("backend.Entities.User", b =>
                 {
                     b.HasOne("backend.Entities.Packages", "Package")
-                        .WithMany("Users")
+                        .WithMany()
                         .HasForeignKey("PackageId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("backend.Entities.Role", "Role")
-                        .WithMany("Users")
-                        .HasForeignKey("RoleId");
-
                     b.Navigation("Package");
-
-                    b.Navigation("Role");
                 });
 
             modelBuilder.Entity("backend.Entities.Category", b =>
@@ -924,17 +858,8 @@ namespace backend.Migrations
                     b.Navigation("StoreLanguages");
                 });
 
-            modelBuilder.Entity("backend.Entities.Packages", b =>
-                {
-                    b.Navigation("PackagePermissions");
-
-                    b.Navigation("Users");
-                });
-
             modelBuilder.Entity("backend.Entities.Permission", b =>
                 {
-                    b.Navigation("PackagePermissions");
-
                     b.Navigation("RolePermissions");
                 });
 
@@ -945,14 +870,13 @@ namespace backend.Migrations
 
             modelBuilder.Entity("backend.Entities.ProductDetail", b =>
                 {
-                    b.Navigation("SuggestedProducts");
+                    b.Navigation("SuggestedProducts")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("backend.Entities.Role", b =>
                 {
                     b.Navigation("RolePermissions");
-
-                    b.Navigation("Users");
                 });
 
             modelBuilder.Entity("backend.Entities.Store", b =>

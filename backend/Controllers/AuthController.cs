@@ -1,17 +1,28 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Authorization;
-using backend.Services;
-using Microsoft.AspNetCore.Mvc;
+﻿using backend.Services;
 using backend.Services.AuthServices;
+using backend.Services.EmailServices;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using System.Configuration;
+
 
 namespace backend.Controllers
 {
     [Route("api/")]
     [ApiController]
-    public class AuthController(IAuthService authService) : ControllerBase
+    public class AuthController : ControllerBase
     {
+        private readonly IAuthService authService;
+        private readonly IEmailService _emailService;
+
+        public AuthController(IAuthService authService, IEmailService emailService)
+        {
+            this.authService = authService;
+            _emailService = emailService;
+        }
         //[Authorize(Roles = "Admin")]
-        [HttpPost("register")]
+        [HttpPost("register-bywp")]
         public async Task<ActionResult<WooOrderEvent>> Register(WooOrderEvent request)
         {
             if (request == null)
@@ -30,6 +41,41 @@ namespace backend.Controllers
             };
 
             return Ok(response);
+        }
+
+        [HttpPost("register-admin")]
+        public async Task<ActionResult<WooOrderEvent>> RegisterAdmin(WooOrderEvent request)
+        {
+            if (request == null)
+                return BadRequest("Json is null");
+            var user = await authService.RegisterAdminAsync(request);
+            if (user is null)
+                return BadRequest("Username already exists.");
+
+            var response = user.GetValueOrDefault();
+            
+
+            await _emailService.SendEmailAsync(response.user.Email, "Set your password",
+                $"<p>Please set your password by clicking <a href='{response.link}'>here</a>.</p>");
+
+            return Ok();
+        }
+
+        [HttpPost("send")]
+        public async Task<IActionResult> SendEmail([FromQuery] string toEmail)
+        {
+            await _emailService.SendEmailAsync(toEmail, "ΣΑΣ ΨΑΧΝΟΥΜΕ ΑΠΟ ΤΗΝ LOUNDLINK, ΦΛΩΡΟΙ ΤHΣ LOCKALLY", "<h1>ΑΥΡΙΟ ΘΑ ΠΕΣΕΙ ΞΥΛΟ ΚΑΙ ΠΟΥΤΣΑ</h1>");
+            return Ok("Email sent successfully!");
+        }
+
+        [HttpPost("set-password")]
+        public async Task<ActionResult> SetPassword(WooOrderEvent request)
+        {
+            var result = await authService.SetPasswordAsync(request);
+            if (!result)
+                return BadRequest("Invalid token or token has expired.");
+
+            return Ok("Password has been set successfully.");
         }
 
 

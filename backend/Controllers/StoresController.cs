@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using backend.Services.AuthServices;
 using System.Text.Json;
+using CloudinaryDotNet.Actions;
 
 namespace backend.Controllers
 {
@@ -18,17 +19,20 @@ namespace backend.Controllers
         private readonly ICloudinaryService _cloudinaryService;
         private readonly IAuthService _authService;
         private readonly ILogger<StoresController> _logger;
-        public StoresController(IStoreService storeService, ICloudinaryService cloudinaryService, IAuthService authService, ILogger<StoresController> logger)
+        private readonly IAuthorizationService _authorizationService;
+        public StoresController(IStoreService storeService, ICloudinaryService cloudinaryService, IAuthService authService, ILogger<StoresController> logger, IAuthorizationService authorizationService)
         {
             _storeService = storeService;
             _cloudinaryService = cloudinaryService;
             _authService = authService;
             _logger = logger;
+            _authorizationService = authorizationService;
+
         }
 
 
 
-       
+
         [HttpGet("all-stores")]
         public async Task<ActionResult<List<Store>>> GetAllStores()
         {
@@ -105,6 +109,17 @@ namespace backend.Controllers
                     Description = pd.Description,
                     Price = pd.Price,
                     CategoryId = pd.CategoryId,
+                    IsKosher = pd.IsKosher,
+                    IsSpicy = pd.IsSpicy,
+                    IsVegan = pd.IsVegan,
+                    GlutenFree = pd.GlutenFree,
+                    ContainsNuts = pd.ContainsNuts,
+                    IsHidden = pd.IsHidden,
+                    SuggestedProduct = pd.SuggestedProducts?
+                                        .Select(sp => sp.SuggestedProductDetailId)
+                                        .ToList() ?? new List<int>(),
+                    ProductId = pd.ProductId
+
                     //ImageURL = pd.ImageURL,
                 }).ToList(),
                 StoreType = store.StoreTypes.Select(st => new TypeModel
@@ -135,6 +150,7 @@ namespace backend.Controllers
                 Schedules = store.Schedules.Select(s => new Schedule
                 {
                     Id = s.Id,
+                    StoreId = s.StoreId,
                     DayOfWeek = s.DayOfWeek,
                     OpeningTime = s.OpeningTime,
                     ClosingTime = s.ClosingTime,
@@ -160,8 +176,20 @@ namespace backend.Controllers
         [Consumes("multipart/form-data")]
         public async Task<ActionResult<Store>> AddStore([FromForm] AddStoreModel store)
         {
+            var user = await _authService.GetUserAsync(User);
+            if (user is null)
+                return NotFound("User not found.");
+            
+
+            var result = await _authorizationService.AuthorizeAsync(User, user.Stores.Count(), "AddStore");
+
+            if (!result.Succeeded)
+                return Forbid("You have reach the limit of the stores");
+
             if (store is null)
                 return BadRequest("Invalid store data or user ID");
+
+
             var urls = new List<string>();
             if (store.Logo is null && store.DesignColor is null)
                 return BadRequest("Please upload images and Backround color");
@@ -188,9 +216,7 @@ namespace backend.Controllers
 
             //if (store.ImageURL is null || (store.DesignBackgroundURL is null && store.DesignColor is null))
             //    return BadRequest("Error uploading images or Backround color");
-            var user = await _authService.GetUserAsync(User);
-            if (user is null)
-                return NotFound("User not found.");
+            
 
             var addedStore = await _storeService.AddStore(store, user.Id);
             return Ok(addedStore);

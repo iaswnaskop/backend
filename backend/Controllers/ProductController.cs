@@ -54,6 +54,11 @@ namespace backend.Controllers
         {
             try {
                 var model = JsonSerializer.Deserialize<AddProductDetailModel>(productDetail.JsonData);
+
+                if(model is null)
+                {
+                    return BadRequest(new { error = "Invalid or missing JsonData" });
+                }
                 var store = await _storeService.GetStoreByStoreId(storeId);
                 if (store is null)
                     return NotFound("Store not found");
@@ -93,7 +98,9 @@ namespace backend.Controllers
                     IsKosher = addedProductDetails.IsKosher,
                     IsSpicy = addedProductDetails.IsSpicy,
                     ContainsNuts = addedProductDetails.ContainsNuts,
-                    SuggestedProduct = addedProductDetails.SuggestedProducts != null ? new List<int> { addedProductDetails.SuggestedProducts.SuggestedProductDetailId } : new List<int>(),
+                    SuggestedProduct = addedProductDetails.SuggestedProducts?
+                                        .Select(sp => sp.SuggestedProductDetailId)
+                                        .ToList() ?? new List<int>(),
                     ImageUrl = addedProductDetails.ImageUrl
 
                 };
@@ -170,7 +177,9 @@ namespace backend.Controllers
                     IsKosher = updatedProductDetails.IsKosher,
                     IsSpicy = updatedProductDetails.IsSpicy,
                     ContainsNuts = updatedProductDetails.ContainsNuts,
-                    SuggestedProduct = updatedProductDetails.SuggestedProducts != null ? new List<int> { updatedProductDetails.SuggestedProducts.SuggestedProductDetailId } : new List<int>(),
+                    SuggestedProduct = updatedProductDetails.SuggestedProducts?
+                                        .Select(sp => sp.SuggestedProductDetailId)
+                                        .ToList() ?? new List<int>(),
                     ImageUrl = updatedProductDetails.ImageUrl
                 };
 

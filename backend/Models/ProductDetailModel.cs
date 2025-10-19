@@ -32,13 +32,12 @@ public partial class ProductDetailModel
 
     public bool Available { get; set; }
     
-    public bool IsHidden { get; set; } = false;
-    public bool IsVegan { get; set; } = false;
-    public bool GlutenFree { get; set; } = false;
-    public bool IsKosher { get; set; } = false;
-    public bool IsGluten { get; set; } = false;
-    public bool IsSpicy { get; set; } = false;
-    public bool ContainsNuts { get; set; } = false;
+    public bool IsHidden { get; set; }
+    public bool IsVegan { get; set; }
+    public bool GlutenFree { get; set; }
+    public bool IsKosher { get; set; }
+    public bool IsSpicy { get; set; }
+    public bool ContainsNuts { get; set; }
     public int? CategoryId { get; set; }
     public int StoreId { get; set; }
     public int ProductId { get; set; }

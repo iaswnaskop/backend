@@ -46,6 +46,6 @@
         public virtual Product Product { get; set; } = null!;
 
         public virtual Store Store { get; set; } = null!;
-        public virtual SuggestProduct SuggestedProducts { get; set; }
+        public ICollection<SuggestProduct> SuggestedProducts { get; set; } = new List<SuggestProduct>();
     }
 }

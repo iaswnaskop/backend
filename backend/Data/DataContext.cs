@@ -25,9 +25,13 @@ namespace backend.Data
         public DbSet<Schedule> Schedules { get; set; } = null!;
         public DbSet<SuggestProduct> SuggestProducts { get; set; } = null!;
         public DbSet<Promo> Promos { get; set; } = null!;
+        public DbSet<Packages> Packages { get; set; } = null!;
+        public DbSet<PackagePermission> PackagePermissions { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            base.OnModelCreating(modelBuilder);
+            //////////////// M:N Relationship between Roles and Permissions
             modelBuilder.Entity<RolePermission>()
                 .HasKey(rp => new { rp.RoleId, rp.PermissionId });
 
@@ -40,9 +44,22 @@ namespace backend.Data
                 .HasOne(rp => rp.Permission)
                 .WithMany(p => p.RolePermissions)
                 .HasForeignKey(rp => rp.PermissionId);
+            //////////////// M:N Relationship between Packages and Permissions
+            //////////////
 
-            //////
-            ///
+            modelBuilder.Entity<PackagePermission>()
+            .HasKey(pp => new { pp.PackageId, pp.PermissionId });
+            modelBuilder.Entity<PackagePermission>()
+                .HasOne(pp => pp.Package)
+                .WithMany(p => p.PackagePermissions)
+                .HasForeignKey(pp => pp.PackageId);
+            modelBuilder.Entity<PackagePermission>()
+                .HasOne(pp => pp.Permission)
+                .WithMany(p => p.PackagePermissions)
+                .HasForeignKey(pp => pp.PermissionId);
+
+
+            //////////////// M:N Relationship between Stores and Types
             modelBuilder.Entity<StoreType>()
                 .HasKey(st => new { st.StoreId, st.TypeId });
 
@@ -56,7 +73,8 @@ namespace backend.Data
                 .WithMany(t => t.StoreTypes)
                 .HasForeignKey(t => t.TypeId);
 
-            
+
+            //////////////// M:N Relationship between Stores and Languages
             modelBuilder.Entity<StoreLanguage>()
                 .HasKey(sl => new { sl.StoreId, sl.LanguageId });
 
@@ -69,6 +87,22 @@ namespace backend.Data
                 .HasOne(sl => sl.Language)
                 .WithMany(l => l.StoreLanguages)
                 .HasForeignKey(l => l.LanguageId);
+
+            modelBuilder.Entity<SuggestProduct>()
+                .HasOne(sp => sp.ProductDetail)
+                .WithMany(pd => pd.SuggestedProducts)
+                .HasForeignKey(sp => sp.ProductDetailId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<SuggestProduct>()
+                .HasOne(sp => sp.SuggestedProductDetail)
+                .WithMany()
+                .HasForeignKey(sp => sp.SuggestedProductDetailId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<SuggestProduct>()
+                .HasIndex(sp => new { sp.ProductDetailId, sp.SuggestedProductDetailId })
+                .IsUnique();
 
 
             //modelBuilder.Entity<Role>().HasData(
@@ -86,6 +120,12 @@ namespace backend.Data
             //    new RolePermission { RoleId = 1, PermissionId = 2 }, // Admin - Edit
             //    new RolePermission { RoleId = 2, PermissionId = 1 }  // User - View
             //);
+
+            modelBuilder.Entity<Packages>().HasData(
+                new Packages { Id = 1, Name = "Starter", Price = 9.99m, Code = "ST24558" },
+                new Packages { Id = 2, Name = "Basic", Price = 19.99m, Code = "BA24556" },
+                new Packages { Id = 3, Name = "Premium", Price = 29.99m, Code = "PR24557" }
+            );
         }
 
     }
